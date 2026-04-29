@@ -63,6 +63,29 @@ impl Packfile {
         }
     }
 
+    /// Create an empty Packfile
+    pub fn empty() -> Self {
+        Self {
+            path: PathBuf::from("Packfile"),
+            tasks: HashMap::new(),
+        }
+    }
+
+    /// Check if Packfile has no tasks
+    pub fn is_empty(&self) -> bool {
+        self.tasks.is_empty()
+    }
+
+    /// Number of tasks in Packfile
+    pub fn len(&self) -> usize {
+        self.tasks.len()
+    }
+
+    /// Check if a task exists
+    pub fn has_task(&self, name: &str) -> bool {
+        self.tasks.contains_key(name)
+    }
+
     /// Parse Packfile content (TOML format)
     pub fn parse(content: &str) -> Result<Self, String> {
         let mut tasks = HashMap::new();
