@@ -157,12 +157,6 @@ pub struct Conflict {
     pub versions: Vec<pack_core::GemVersion>,
 }
 
-impl Default for Resolver {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -220,5 +214,54 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].0, "rails");
         assert_eq!(result[1].0, "puma");
+    }
+
+    #[test]
+    fn test_resolve_with_graph() {
+        let resolver = Resolver::new();
+        let deps = vec![
+            Dependency {
+                name: GemName("rails".to_string()),
+                version: Some(GemVersion("7.1.0".to_string())),
+                group: None,
+            },
+        ];
+        let result = resolver.resolve_with_graph(&deps).unwrap();
+        assert_eq!(result.resolved.len(), 1);
+        assert!(result.conflicts.is_empty());
+    }
+
+    #[test]
+    fn test_has_circular_deps_no_cycle() {
+        let resolver = Resolver::new();
+        let mut deps = HashMap::new();
+        deps.insert(GemName("rails".to_string()), vec![GemName("actionpack".to_string())]);
+        deps.insert(GemName("actionpack".to_string()), vec![GemName("rack".to_string())]);
+
+        assert!(!resolver.has_circular_deps(&deps));
+    }
+
+    #[test]
+    fn test_has_circular_deps_with_cycle() {
+        let resolver = Resolver::new();
+        let mut deps = HashMap::new();
+        deps.insert(GemName("a".to_string()), vec![GemName("b".to_string())]);
+        deps.insert(GemName("b".to_string()), vec![GemName("c".to_string())]);
+        deps.insert(GemName("c".to_string()), vec![GemName("a".to_string())]);
+
+        assert!(resolver.has_circular_deps(&deps));
+    }
+
+    #[test]
+    fn test_find_all_dependencies() {
+        let resolver = Resolver::new();
+        let mut deps = HashMap::new();
+        deps.insert(GemName("rails".to_string()), vec![GemName("actionpack".to_string())]);
+        deps.insert(GemName("actionpack".to_string()), vec![GemName("actionview".to_string())]);
+
+        let result = resolver.find_all_dependencies(&GemName("rails".to_string()), &deps);
+        assert!(result.contains(&GemName("rails".to_string())));
+        assert!(result.contains(&GemName("actionpack".to_string())));
+        assert!(result.contains(&GemName("actionview".to_string())));
     }
 }
