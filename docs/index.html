@@ -9,1400 +9,170 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --text-primary: #f0f0f5;
-            --text-secondary: #a0a0b0;
-            --text-muted: #606070;
-            --accent-primary: #ff6b6b;
-            --accent-secondary: #ee5a24;
-            --accent-gem: #cc2255;
-            --accent-ruby: #cc3424;
-            --accent-rails: #cc0000;
-            --border-color: #2a2a3a;
-            --gradient-pack: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            --gradient-ruby: linear-gradient(135deg, #ff6b6b 0%, #cc3424 100%);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        ::selection {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        a {
-            color: var(--accent-primary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        a:hover {
-            color: var(--accent-secondary);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-pack);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: white;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        .nav-links a:hover {
-            color: var(--text-primary);
-        }
-
-        .nav-cta {
-            background: var(--gradient-pack);
-            color: white !important;
-            padding: 0.6rem 1.25rem;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .nav-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.3);
-        }
-
-        /* Hero */
-        .hero {
-            padding: 160px 0 100px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            border-radius: 100px;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-        }
-
-        .hero-badge span {
-            color: var(--accent-primary);
-            font-weight: 600;
-        }
-
-        .hero h1 {
-            font-size: clamp(3rem, 8vw, 5rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: var(--gradient-pack);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 2.5rem;
-            line-height: 1.7;
-        }
-
-        .hero-cta {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.75rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-primary {
-            background: var(--gradient-pack);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg-secondary);
-            border-color: var(--accent-primary);
-        }
-
-        .hero-install {
-            margin-top: 3rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        .install-cmd {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .install-cmd .prefix {
-            color: var(--text-muted);
-        }
-
-        .install-cmd code {
-            color: var(--accent-primary);
-        }
-
-        .copy-btn {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-        }
-
-        /* Performance Section */
-        .performance {
-            padding: 100px 0;
-            background: var(--bg-secondary);
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .section-label {
-            color: var(--accent-primary);
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 1rem;
-        }
-
-        .section-title {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-
-        .section-desc {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .perf-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .perf-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            transition: all 0.3s;
-        }
-
-        .perf-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-primary);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .perf-metric {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: var(--gradient-pack);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .perf-label {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .perf-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .perf-compare {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-        }
-
-        .perf-compare span:first-child {
-            color: var(--text-muted);
-        }
-
-        .perf-compare span:last-child {
-            color: var(--accent-primary);
-            font-weight: 600;
-        }
-
-        /* Benchmark Table */
-        .benchmark {
-            padding: 100px 0;
-        }
-
-        .benchmark-table {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .benchmark-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            align-items: center;
-        }
-
-        .benchmark-row:last-child {
-            border-bottom: none;
-        }
-
-        .benchmark-header {
-            background: var(--bg-tertiary);
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-        }
-
-        .benchmark-op {
-            font-weight: 500;
-        }
-
-        .benchmark-time {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-        }
-
-        .benchmark-time.pack {
-            color: var(--accent-primary);
-        }
-
-        .benchmark-speedup {
-            background: var(--bg-tertiary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--accent-primary);
-            width: fit-content;
-        }
-
-        /* Features */
-        .features {
-            padding: 100px 0;
-            background: var(--bg-secondary);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .feature-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-pack);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s;
-        }
-
-        .feature-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .feature-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-desc {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.7;
-        }
-
-        /* Rails Section */
-        .rails {
-            padding: 100px 0;
-            position: relative;
-        }
-
-        .rails::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(204, 0, 0, 0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .rails-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        @media (max-width: 900px) {
-            .rails-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .rails-content h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-        }
-
-        .rails-content h2 span {
-            color: var(--accent-rails);
-        }
-
-        .rails-content p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            line-height: 1.7;
-            margin-bottom: 2rem;
-        }
-
-        .rails-cmd-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .rails-cmd {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            padding: 0.75rem 1rem;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .rails-cmd .cmd {
-            color: var(--accent-primary);
-            min-width: 160px;
-        }
-
-        .rails-cmd .desc {
-            color: var(--text-muted);
-        }
-
-        .rails-visual {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .rails-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .rails-card-icon {
-            font-size: 2rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .rails-card-title {
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .rails-card-desc {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        /* Commands */
-        .commands {
-            padding: 100px 0;
-            background: var(--bg-secondary);
-        }
-
-        .commands-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .cmd-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-        .cmd-card:hover {
-            border-color: var(--accent-primary);
-            transform: translateX(5px);
-        }
-
-        .cmd-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .cmd-name {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            color: var(--accent-primary);
-        }
-
-        .cmd-desc {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* Getting started */
-        .getting-started {
-            padding: 100px 0;
-        }
-
-        .start-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-        }
-
-        @media (max-width: 900px) {
-            .start-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .start-content h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-        }
-
-        .start-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .start-step {
-            display: flex;
-            gap: 1.25rem;
-        }
-
-        .step-num {
-            width: 36px;
-            height: 36px;
-            background: var(--gradient-pack);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        .step-content h4 {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .step-content p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .start-code {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .code-header {
-            background: var(--bg-tertiary);
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .code-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .code-dot.red { background: #ff5f56; }
-        .code-dot.yellow { background: #ffbd2e; }
-        .code-dot.green { background: #27ca40; }
-
-        .code-title {
-            margin-left: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .code-content {
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            line-height: 1.8;
-        }
-
-        .code-content .comment {
-            color: var(--text-muted);
-        }
-
-        .code-content .cmd {
-            color: var(--accent-primary);
-        }
-
-        .code-content .output {
-            color: var(--text-secondary);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-            padding: 60px 0;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-        }
-
-        @media (max-width: 900px) {
-            .footer-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .footer-brand {
-            max-width: 300px;
-        }
-
-        .footer-brand .logo {
-            margin-bottom: 1rem;
-        }
-
-        .footer-brand p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .footer-col h4 {
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .footer-col ul {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .footer-col a {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .footer-col a:hover {
-            color: var(--accent-primary);
-        }
-
-        .footer-bottom {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* Comparison cards */
-        .comparison {
-            padding: 100px 0;
-        }
-
-        .comparison-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 900px) {
-            .comparison-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .comparison-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .comparison-card .tool-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .comparison-card.pack .tool-name {
-            color: var(--accent-primary);
-        }
-
-        .comparison-card.bundler .tool-name {
-            color: var(--text-muted);
-        }
-
-        .comparison-card.gem .tool-name {
-            color: var(--accent-ruby);
-        }
-
-        .comparison-card .tool-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .comparison-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .comparison-stat {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-        }
-
-        .comparison-stat .label {
-            color: var(--text-muted);
-        }
-
-        .comparison-stat .value {
-            font-weight: 600;
-        }
-
-        .comparison-card.pack .value {
-            color: var(--accent-primary);
-        }
-
-        .comparison-card.bundler .value {
-            color: var(--text-muted);
-        }
-
-        .comparison-card.gem .value {
-            color: var(--accent-ruby);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .hero {
-                padding: 120px 0 60px;
-            }
-
-            .perf-grid,
-            .features-grid,
-            .commands-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .benchmark-row {
-                grid-template-columns: 1fr 1fr;
-                gap: 0.5rem;
-            }
-
-            .benchmark-header {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <nav>
         <div class="container">
             <a href="#" class="logo">
-                <div class="logo-icon">P</div>
-                Pack
+                <span class="logo-icon">P</span>
+                <span>Pack</span>
             </a>
             <div class="nav-links">
                 <a href="#features">Features</a>
-                <a href="#rails">Rails</a>
-                <a href="#benchmark">Benchmark</a>
-                <a href="#commands">Commands</a>
-                <a href="https://github.com/piper/pack" class="nav-cta">GitHub</a>
+                <a href="#benchmarks">Benchmarks</a>
+                <a href="#install">Install</a>
+                <a href="#docs">Docs</a>
+                <a href="https://github.com/Blu3Ph4ntom/pack" class="github-link">GitHub</a>
             </div>
         </div>
     </nav>
 
-    <section class="hero">
+    <header class="hero">
+        <div class="hero-bg"></div>
         <div class="container">
-            <div class="hero-badge">
-                <span>Rust-powered</span> Ruby Package Manager
+            <div class="hero-badge">Rust-Powered • 100x Faster</div>
+            <h1>Blazingly Fast<br><span class="gradient-text">Ruby Package Manager</span></h1>
+            <p class="hero-subtitle">Pack is an ultra-fast Ruby package manager written in Rust. Sub-second dependency resolution, native gem installation, and first-class Rails support. No Ruby required.</p>
+            <div class="hero-actions">
+                <a href="#install" class="btn btn-primary">Get Started</a>
+                <a href="#benchmarks" class="btn btn-secondary">View Benchmarks</a>
             </div>
-            <h1>Blazingly Fast<br>Ruby Package Manager</h1>
-            <p class="hero-subtitle">
-                Pack is a drop-in replacement for gem and bundle. Sub-second dependency resolution,
-                native gem installation, and first-class Rails support. No Ruby required.
-            </p>
-            <div class="hero-cta">
-                <a href="#getting-started" class="btn btn-primary">Get Started</a>
-                <a href="https://github.com/piper/pack" class="btn btn-secondary">View on GitHub</a>
-            </div>
-            <div class="hero-install">
-                <div class="install-cmd">
-                    <span class="prefix">$</span>
-                    <code id="install-cmd">curl -fsSL https://pack.dev/install.sh | bash</code>
-                    <button class="copy-btn" onclick="copyInstall()">Copy</button>
-                </div>
+            <div class="hero-code">
+                <code>curl -fsSL https://pack.dev/install.sh | bash</code>
             </div>
         </div>
-    </section>
+    </header>
 
-    <section class="performance">
+    <section id="features" class="features">
         <div class="container">
-            <div class="section-header">
-                <div class="section-label">Performance</div>
-                <h2 class="section-title">Measured in milliseconds</h2>
-                <p class="section-desc">Real-world benchmarks on AMD EPYC 7662, 2024.</p>
-            </div>
-            <div class="perf-grid">
-                <div class="perf-card">
-                    <div class="perf-metric">157,000x</div>
-                    <div class="perf-label">Gemfile Parsing</div>
-                    <div class="perf-desc">Parse 100 gem declarations in microseconds vs Bundler's milliseconds</div>
-                    <div class="perf-compare">
-                        <span>Bundler: 847ms</span>
-                        <span>Pack: 5.4μs</span>
-                    </div>
-                </div>
-                <div class="perf-card">
-                    <div class="perf-metric">33,000x</div>
-                    <div class="perf-label">Lockfile Parsing</div>
-                    <div class="perf-desc">Parse 50 gem specs from Gemfile.lock with near-instant speed</div>
-                    <div class="perf-compare">
-                        <span>Bundler: 512ms</span>
-                        <span>Pack: 15μs</span>
-                    </div>
-                </div>
-                <div class="perf-card">
-                    <div class="perf-metric">500x</div>
-                    <div class="perf-label">Startup Time</div>
-                    <div class="perf-desc">Pack starts in ~1ms vs gem's ~400ms overhead</div>
-                    <div class="perf-compare">
-                        <span>gem: 400ms</span>
-                        <span>Pack: 0.8ms</span>
-                    </div>
-                </div>
-                <div class="perf-card">
-                    <div class="perf-metric">600x</div>
-                    <div class="perf-label">Doctor Command</div>
-                    <div class="perf-desc">Diagnose your Ruby project configuration instantly</div>
-                    <div class="perf-compare">
-                        <span>Bundler: 1200ms</span>
-                        <span>Pack: 2ms</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="benchmark" id="benchmark">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-label">Benchmark</div>
-                <h2 class="section-title">Pack vs Bundler vs gem</h2>
-                <p class="section-desc">Direct comparison of key operations.</p>
-            </div>
-            <div class="benchmark-table">
-                <div class="benchmark-row benchmark-header">
-                    <span>Operation</span>
-                    <span>Bundler</span>
-                    <span>gem</span>
-                    <span>Pack</span>
-                    <span>Speedup</span>
-                </div>
-                <div class="benchmark-row">
-                    <span class="benchmark-op">Parse Gemfile (100 deps)</span>
-                    <span class="benchmark-time">847ms</span>
-                    <span class="benchmark-time">N/A</span>
-                    <span class="benchmark-time pack">5.4μs</span>
-                    <span class="benchmark-speedup">157,000x</span>
-                </div>
-                <div class="benchmark-row">
-                    <span class="benchmark-op">Parse Gemfile.lock (50 gems)</span>
-                    <span class="benchmark-time">512ms</span>
-                    <span class="benchmark-time">N/A</span>
-                    <span class="benchmark-time pack">15μs</span>
-                    <span class="benchmark-speedup">33,000x</span>
-                </div>
-                <div class="benchmark-row">
-                    <span class="benchmark-op">Parse Gemfile.lock (200 gems)</span>
-                    <span class="benchmark-time">1200ms</span>
-                    <span class="benchmark-time">N/A</span>
-                    <span class="benchmark-time pack">41μs</span>
-                    <span class="benchmark-speedup">29,000x</span>
-                </div>
-                <div class="benchmark-row">
-                    <span class="benchmark-op">Dependency path lookup</span>
-                    <span class="benchmark-time">N/A</span>
-                    <span class="benchmark-time">N/A</span>
-                    <span class="benchmark-time pack">80ns</span>
-                    <span class="benchmark-speedup">—</span>
-                </div>
-                <div class="benchmark-row">
-                    <span class="benchmark-op">Startup time</span>
-                    <span class="benchmark-time">~500ms</span>
-                    <span class="benchmark-time">~400ms</span>
-                    <span class="benchmark-time pack">~1ms</span>
-                    <span class="benchmark-speedup">400-500x</span>
-                </div>
-                <div class="benchmark-row">
-                    <span class="benchmark-op">Gem list command</span>
-                    <span class="benchmark-time">~200ms</span>
-                    <span class="benchmark-time">~200ms</span>
-                    <span class="benchmark-time pack">~1ms</span>
-                    <span class="benchmark-speedup">200x</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-label">Features</div>
-                <h2 class="section-title">Everything you need. Nothing you don't.</h2>
-                <p class="section-desc">A modern Ruby package manager built for speed and developer experience.</p>
-            </div>
+            <h2>Why Pack?</h2>
             <div class="features-grid">
-                <div class="feature-card">
+                <div class="feature">
                     <div class="feature-icon">⚡</div>
-                    <h3 class="feature-title">Native Speed</h3>
-                    <p class="feature-desc">Written in Rust with zero-copy parsing. No Ruby interpreter startup overhead means sub-millisecond operations.</p>
+                    <h3>100x Faster</h3>
+                    <p>Lockfile parsing is 33,000x faster than Bundler. Native Rust parsing means no Ruby interpreter startup overhead.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature">
+                    <div class="feature-icon">🔧</div>
+                    <h3>No Ruby Required</h3>
+                    <p>Works on systems without Ruby installed. Perfect for Docker containers and CI/CD pipelines.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🚂</div>
+                    <h3>Rails First</h3>
+                    <p>First-class Rails support with commands like pack server, pack console, pack test, and pack db.</p>
+                </div>
+                <div class="feature">
                     <div class="feature-icon">📦</div>
-                    <h3 class="feature-title">Native Gems</h3>
-                    <p class="feature-desc">Install gems directly from RubyGems.org API. No bundler, no gem binary required. Pack works on any system.</p>
+                    <h3>Binary pack.lock</h3>
+                    <p>MessagePack-based lockfile format for near-instant parsing. 100x faster than Gemfile.lock.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3 class="feature-title">pack.lock</h3>
-                    <p class="feature-desc">Binary MessagePack format that's 100x faster than Gemfile.lock. Parse 200 gems in 41 microseconds.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🐳</div>
-                    <h3 class="feature-title">Docker Ready</h3>
-                    <p class="feature-desc">No Ruby required for gem operations. Smaller Docker images, faster builds, no gem path issues.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3 class="feature-title">Rails Native</h3>
-                    <p class="feature-desc">First-class Rails support with commands like <code>pack server</code>, <code>pack console</code>, <code>pack db migrate</code>.</p>
-                </div>
-                <div class="feature-card">
+                <div class="feature">
                     <div class="feature-icon">🔌</div>
-                    <h3 class="feature-title">Plugin System</h3>
-                    <p class="feature-desc">Extend pack with plugins. Shell scripts, binaries, Docker containers — any executable.</p>
+                    <h3>Plugin System</h3>
+                    <p>Extend Pack with plugins. Shell scripts, binaries, or Docker containers — any executable works.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📝</div>
-                    <h3 class="feature-title">Packfile Tasks</h3>
-                    <p class="feature-desc">Define project tasks in a Packfile. <code>pack run dev</code>, <code>pack run deploy</code>, <code>pack run test</code>.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🏃</div>
-                    <h3 class="feature-title">Offline Mode</h3>
-                    <p class="feature-desc">Use cached gems without network. Perfect for CI/CD pipelines and air-gapped environments.</p>
+                <div class="feature">
+                    <div class="feature-icon">📦</div>
+                    <h3>Offline Mode</h3>
+                    <p>Cached gems work without network. Set PACK_OFFLINE=1 and keep building.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="rails" id="rails">
+    <section id="benchmarks" class="benchmarks">
         <div class="container">
-            <div class="rails-grid">
-                <div class="rails-content">
-                    <div class="section-label">First-Class Support</div>
-                    <h2>Made for <span>Rails</span></h2>
-                    <p>
-                        Pack understands your Rails project. First-class commands for server, console,
-                        tests, database, assets, and more. Works perfectly with Rails 8, Solid Queue,
-                        Solid Cache, and Propshaft.
-                    </p>
-                    <div class="rails-cmd-list">
-                        <div class="rails-cmd">
-                            <span class="cmd">pack server</span>
-                            <span class="desc">Start Rails server</span>
-                        </div>
-                        <div class="rails-cmd">
-                            <span class="cmd">pack console</span>
-                            <span class="desc">Open Rails console</span>
-                        </div>
-                        <div class="rails-cmd">
-                            <span class="cmd">pack test</span>
-                            <span class="desc">Run Rails tests</span>
-                        </div>
-                        <div class="rails-cmd">
-                            <span class="cmd">pack db migrate</span>
-                            <span class="desc">Database migrations</span>
-                        </div>
-                        <div class="rails-cmd">
-                            <span class="cmd">pack docker</span>
-                            <span class="desc">Generate Dockerfile</span>
-                        </div>
-                    </div>
+            <h2>Performance</h2>
+            <div class="benchmark-grid">
+                <div class="benchmark-card">
+                    <div class="benchmark-label">Parse Gemfile (100 deps)</div>
+                    <div class="benchmark-value">5.4µs</div>
+                    <div class="benchmark-compare">vs 850ms Bundler</div>
+                    <div class="benchmark-badge">157,000x faster</div>
                 </div>
-                <div class="rails-visual">
-                    <div class="rails-card">
-                        <div class="rails-card-icon">🚀</div>
-                        <div class="rails-card-title">Solid Queue</div>
-                        <div class="rails-card-desc">Database-backed jobs</div>
-                    </div>
-                    <div class="rails-card">
-                        <div class="rails-card-icon">💾</div>
-                        <div class="rails-card-title">Solid Cache</div>
-                        <div class="rails-card-desc">Database-backed caching</div>
-                    </div>
-                    <div class="rails-card">
-                        <div class="rails-card-icon">⚡</div>
-                        <div class="rails-card-title">Propshaft</div>
-                        <div class="rails-card-desc">Modern asset pipeline</div>
-                    </div>
-                    <div class="rails-card">
-                        <div class="rails-card-icon">🚀</div>
-                        <div class="rails-card-title">Kamal</div>
-                        <div class="rails-card-desc">Zero-downtime deploys</div>
-                    </div>
+                <div class="benchmark-card">
+                    <div class="benchmark-label">Parse Lockfile (50 gems)</div>
+                    <div class="benchmark-value">15µs</div>
+                    <div class="benchmark-compare">vs 500ms Bundler</div>
+                    <div class="benchmark-badge">33,000x faster</div>
+                </div>
+                <div class="benchmark-card">
+                    <div class="benchmark-label">Parse Lockfile (200 gems)</div>
+                    <div class="benchmark-value">41µs</div>
+                    <div class="benchmark-compare">vs 1200ms Bundler</div>
+                    <div class="benchmark-badge">29,000x faster</div>
+                </div>
+                <div class="benchmark-card highlight">
+                    <div class="benchmark-label">Startup Time</div>
+                    <div class="benchmark-value">1ms</div>
+                    <div class="benchmark-compare">vs 500ms Bundler</div>
+                    <div class="benchmark-badge">500x faster</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="commands" id="commands">
+    <section id="install" class="install">
         <div class="container">
-            <div class="section-header">
-                <div class="section-label">Commands</div>
-                <h2 class="section-title">Drop-in for gem & bundle</h2>
-                <p class="section-desc">Familiar commands that work exactly like you expect.</p>
+            <h2>Get Started</h2>
+            <div class="install-grid">
+                <div class="install-step">
+                    <div class="step-number">1</div>
+                    <h3>Install Pack</h3>
+                    <pre><code>curl -fsSL https://pack.dev/install.sh | bash</code></pre>
+                </div>
+                <div class="install-step">
+                    <div class="step-number">2</div>
+                    <h3>Initialize Project</h3>
+                    <pre><code>cd my-rails-app
+pack init</code></pre>
+                </div>
+                <div class="install-step">
+                    <div class="step-number">3</div>
+                    <h3>Install Gems</h3>
+                    <pre><code>pack install</code></pre>
+                </div>
             </div>
+        </div>
+    </section>
+
+    <section id="docs" class="commands">
+        <div class="container">
+            <h2>Commands</h2>
             <div class="commands-grid">
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack install</span>
-                        <span class="cmd-desc">Install gems from Gemfile</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack install</code>
+                    <span>Install gems from Gemfile</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack list</span>
-                        <span class="cmd-desc">List installed gems</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack add rails</code>
+                    <span>Add gem to Gemfile</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack search</span>
-                        <span class="cmd-desc">Search remote gems</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack remove rails</code>
+                    <span>Remove gem from Gemfile</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack info</span>
-                        <span class="cmd-desc">Show gem information</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack update</code>
+                    <span>Update gem versions</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack install rails</span>
-                        <span class="cmd-desc">Install specific gem</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack why rails</code>
+                    <span>Explain dependency chain</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack exec</span>
-                        <span class="cmd-desc">Execute gem binaries</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack gem list</code>
+                    <span>List installed gems</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack update</span>
-                        <span class="cmd-desc">Update gem versions</span>
-                    </div>
+                <div class="command-card">
+                    <code>pack server</code>
+                    <span>Start Rails server</span>
                 </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack lock</span>
-                        <span class="cmd-desc">Generate pack.lock</span>
-                    </div>
-                </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack why</span>
-                        <span class="cmd-desc">Show dependency chain</span>
-                    </div>
-                </div>
-                <div class="cmd-card">
-                    <div class="cmd-info">
-                        <span class="cmd-name">pack doctor</span>
-                        <span class="cmd-desc">Diagnose environment</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="getting-started" id="getting-started">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-label">Get Started</div>
-                <h2 class="section-title">Start in 30 seconds</h2>
-            </div>
-            <div class="start-grid">
-                <div class="start-content">
-                    <div class="start-steps">
-                        <div class="start-step">
-                            <div class="step-num">1</div>
-                            <div class="step-content">
-                                <h4>Install Pack</h4>
-                                <p>Download and install the pack binary. Works on Linux, macOS, and Windows.</p>
-                            </div>
-                        </div>
-                        <div class="start-step">
-                            <div class="step-num">2</div>
-                            <div class="step-content">
-                                <h4>Create a Rails project</h4>
-                                <p>Use pack new to scaffold a new Rails app with Docker support, or initialize an existing project.</p>
-                            </div>
-                        </div>
-                        <div class="start-step">
-                            <div class="step-num">3</div>
-                            <div class="step-content">
-                                <h4>Install gems and go</h4>
-                                <p>Pack install is faster than bundle install. Generate pack.lock for near-instant parsing.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="start-code">
-                    <div class="code-header">
-                        <div class="code-dot red"></div>
-                        <div class="code-dot yellow"></div>
-                        <div class="code-dot green"></div>
-                        <span class="code-title">terminal</span>
-                    </div>
-                    <div class="code-content">
-                        <span class="comment"># Install pack</span><br>
-                        <span class="cmd">$ curl -fsSL https://pack.dev/install.sh | bash</span><br><br>
-                        <span class="comment"># Create new Rails project</span><br>
-                        <span class="cmd">$ pack new myapp --docker --database postgresql</span><br><br>
-                        <span class="comment"># Go into the project</span><br>
-                        <span class="cmd">$ cd myapp</span><br><br>
-                        <span class="comment"># Install gems (faster than bundle!)</span><br>
-                        <span class="cmd">$ pack install</span><br><br>
-                        <span class="comment"># Start server</span><br>
-                        <span class="cmd">$ pack server</span><br><br>
-                        <span class="output">Pack 0.1.0 - Rails 7.1.0<br>
-                        Server running on http://localhost:3000</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="comparison">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-label">Comparison</div>
-                <h2 class="section-title">Why Pack wins</h2>
-            </div>
-            <div class="comparison-grid">
-                <div class="comparison-card pack">
-                    <div class="tool-name">Pack</div>
-                    <div class="tool-desc">Rust-powered, native gem operations</div>
-                    <div class="comparison-stats">
-                        <div class="comparison-stat">
-                            <span class="label">Startup</span>
-                            <span class="value">~1ms</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Lockfile parse</span>
-                            <span class="value">15μs</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Native gems</span>
-                            <span class="value">Yes</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Ruby required</span>
-                            <span class="value">No</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Rails commands</span>
-                            <span class="value">Yes</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="comparison-card bundler">
-                    <div class="tool-name">Bundler</div>
-                    <div class="tool-desc">Ruby-native, standard dependency manager</div>
-                    <div class="comparison-stats">
-                        <div class="comparison-stat">
-                            <span class="label">Startup</span>
-                            <span class="value">~500ms</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Lockfile parse</span>
-                            <span class="value">512ms</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Native gems</span>
-                            <span class="value">No</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Ruby required</span>
-                            <span class="value">Yes</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Rails commands</span>
-                            <span class="value">No</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="comparison-card gem">
-                    <div class="tool-name">gem</div>
-                    <div class="tool-desc">RubyGems client, gem installation</div>
-                    <div class="comparison-stats">
-                        <div class="comparison-stat">
-                            <span class="label">Startup</span>
-                            <span class="value">~400ms</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Lockfile parse</span>
-                            <span class="value">N/A</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Native gems</span>
-                            <span class="value">No</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Ruby required</span>
-                            <span class="value">Yes</span>
-                        </div>
-                        <div class="comparison-stat">
-                            <span class="label">Rails commands</span>
-                            <span class="value">No</span>
-                        </div>
-                    </div>
+                <div class="command-card">
+                    <code>pack console</code>
+                    <span>Open Rails console</span>
                 </div>
             </div>
         </div>
@@ -1410,57 +180,15 @@
 
     <footer>
         <div class="container">
-            <div class="footer-grid">
-                <div class="footer-brand">
-                    <div class="logo">
-                        <div class="logo-icon">P</div>
-                        Pack
-                    </div>
-                    <p>Blazingly fast Ruby package manager written in Rust. Drop-in replacement for gem and bundle.</p>
-                </div>
-                <div class="footer-col">
-                    <h4>Documentation</h4>
-                    <ul>
-                        <li><a href="#getting-started">Getting Started</a></li>
-                        <li><a href="#commands">Commands</a></li>
-                        <li><a href="#rails">Rails Support</a></li>
-                        <li><a href="#benchmark">Benchmark</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="https://github.com/piper/pack">GitHub</a></li>
-                        <li><a href="https://crates.io/crates/pack">Crates.io</a></li>
-                        <li><a href="#">API Docs</a></li>
-                        <li><a href="#">Changelog</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Compare</h4>
-                    <ul>
-                        <li><a href="#benchmark">vs Bundler</a></li>
-                        <li><a href="#benchmark">vs gem</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#">Performance</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <span>MIT License 2024-2026</span>
-                <span>Made with ❤️ for Ruby</span>
-            </div>
+            <p>Pack is MIT licensed. Built with Rust.</p>
+            <p class="footer-links">
+                <a href="https://github.com/Blu3Ph4ntom/pack">GitHub</a> •
+                <a href="#">Documentation</a> •
+                <a href="#">Changelog</a>
+            </p>
         </div>
     </footer>
 
-    <script>
-        function copyInstall() {
-            const cmd = document.getElementById('install-cmd').textContent;
-            navigator.clipboard.writeText(cmd);
-            const btn = document.querySelector('.copy-btn');
-            btn.textContent = 'Copied!';
-            setTimeout(() => btn.textContent = 'Copy', 2000);
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
