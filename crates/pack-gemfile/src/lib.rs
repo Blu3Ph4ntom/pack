@@ -116,12 +116,18 @@ fn parse_gem_line(line: &str) -> Option<Dependency> {
 fn parse_gem_line_with_group(line: &str, group: Option<&str>) -> Option<Dependency> {
     let content = line.strip_prefix("gem")?.trim();
 
-    let (name, rest) = if content.starts_with("'") {
-        let end = content[1..].find('\'')?;
-        (&content[1..end], &content[end + 1..])
-    } else if content.starts_with("\"") {
-        let end = content[1..].find('\"')?;
-        (&content[1..end], &content[end + 1..])
+    let (name, rest) = if let Some(stripped) = content.strip_prefix('\'') {
+        if let Some(end) = stripped.find('\'') {
+            (&content[1..end], &content[end + 1..])
+        } else {
+            return None;
+        }
+    } else if let Some(stripped) = content.strip_prefix('"') {
+        if let Some(end) = stripped.find('"') {
+            (&content[1..end], &content[end + 1..])
+        } else {
+            return None;
+        }
     } else {
         let end = content.find(|c: char| c.is_whitespace() || c == ',')?;
         (&content[..end], &content[end..])

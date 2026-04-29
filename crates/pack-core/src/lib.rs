@@ -1,6 +1,6 @@
 //! Pack core types shared across all crates.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -55,7 +55,7 @@ impl Project {
     }
 }
 
-fn find_file(dir: &PathBuf, name: &str) -> Option<PathBuf> {
+fn find_file(dir: &Path, name: &str) -> Option<PathBuf> {
     let path = dir.join(name);
     if path.exists() {
         Some(path)

@@ -2,6 +2,7 @@
 
 use pack_core::{GemName, GemVersion, PackError, PackResult};
 use std::collections::HashMap;
+use std::mem;
 use std::path::PathBuf;
 
 pub struct Lockfile {
@@ -94,7 +95,7 @@ fn parse_specs(content: &str) -> PackResult<HashMap<GemName, GemSpec>> {
                             version: current_version
                                 .take()
                                 .unwrap_or(GemVersion("unknown".to_string())),
-                            dependencies: current_deps.drain(..).collect(),
+                            dependencies: mem::take(&mut current_deps),
                         },
                     );
                 }
@@ -119,7 +120,7 @@ fn parse_specs(content: &str) -> PackResult<HashMap<GemName, GemSpec>> {
                             version: current_version
                                 .take()
                                 .unwrap_or(GemVersion("unknown".to_string())),
-                            dependencies: current_deps.drain(..).collect(),
+                            dependencies: mem::take(&mut current_deps),
                         },
                     );
                 }
@@ -169,8 +170,8 @@ fn parse_spec_name_version(line: &str) -> (Option<GemName>, Option<GemVersion>) 
 
     let (name, rest) = if let Some(paren) = trimmed.find(" (") {
         (&trimmed[..paren], Some(&trimmed[paren..]))
-    } else if trimmed.ends_with(" ()") {
-        (&trimmed[..trimmed.len() - 3], None)
+    } else if let Some(stripped) = trimmed.strip_suffix(" ()") {
+        (stripped, None)
     } else if let Some(paren_pos) = trimmed.find('(') {
         let name = &trimmed[..paren_pos];
         let rest = &trimmed[paren_pos..];
