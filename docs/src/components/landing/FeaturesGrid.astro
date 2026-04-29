@@ -1,0 +1,130 @@
+---
+import { withBase } from '../../utils/base'
+---
+
+<section class="sect" id="features">
+  <div class="wrap">
+
+    <p class="sect-eyebrow" data-reveal>Features</p>
+    <h2 class="sect-heading" data-reveal>Everything you need.<br />Nothing you don't.</h2>
+
+    <div class="feats" data-stagger>
+
+      <div class="feat">
+        <p class="feat-name">157,000x Faster</p>
+        <p class="feat-desc">Gemfile parsing is 157,000x faster than Bundler. Native Rust parsing means no Ruby startup overhead.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">No Ruby Required</p>
+        <p class="feat-desc">Works on systems without Ruby installed. Perfect for Docker containers and CI/CD pipelines.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Binary pack.lock</p>
+        <p class="feat-desc">MessagePack-based lockfile format. 33,000x faster parsing than Gemfile.lock.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Rails First</p>
+        <p class="feat-desc">First-class Rails support with commands like <code>pack server</code>, <code>pack console</code>, <code>pack db</code>.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Parallel Downloads</p>
+        <p class="feat-desc">Uses Rayon for concurrent gem downloads. Install 50 gems in seconds, not minutes.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Plugin System</p>
+        <p class="feat-desc">Extend Pack with shell scripts, binaries, or Docker containers. Your plugins, your way.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Offline Mode</p>
+        <p class="feat-desc">Cached gems work without network. Set <code>PACK_OFFLINE=1</code> and keep building.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Native gem exec</p>
+        <p class="feat-desc">Direct binary execution without <code>bundle exec</code>. <code>pack exec rails console</code> works instantly.</p>
+      </div>
+
+      <div class="feat">
+        <p class="feat-name">Docker Optimized</p>
+        <p class="feat-desc">Multi-stage builds, volume caching, and no Ruby needed in build stage.</p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-12);
+  }
+
+  .feats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+
+  .feat {
+    padding: var(--sp-6);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transition: background var(--duration) var(--ease);
+  }
+
+  .feat:hover { background: var(--bg-subtle); }
+
+  .feat-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    margin-bottom: var(--sp-2);
+    color: var(--accent);
+  }
+
+  .feat-desc {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.55;
+  }
+
+  .feat-desc code {
+    font-size: var(--text-xs);
+    color: var(--fg);
+    background: var(--bg-muted);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 960px) {
+    .feats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 540px) {
+    .feats { grid-template-columns: 1fr; }
+  }
+</style>

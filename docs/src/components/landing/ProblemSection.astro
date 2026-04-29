@@ -1,0 +1,98 @@
+---
+---
+
+<section class="sect" id="problem">
+  <div class="wrap">
+
+    <p class="sect-eyebrow" data-reveal>The Problem</p>
+    <h2 class="sect-heading" data-reveal>Bundle install takes<br />forever. Every time.</h2>
+    <p class="sect-body" data-reveal>
+      Ruby developers waste hours waiting for <code>bundle install</code>.<br />
+      Docker builds fail because of gem path issues. CI pipelines crawl.
+    </p>
+
+    <div class="symptoms" data-stagger>
+      <div class="symptom">
+        <p class="symptom-name">5-30 min installs</p>
+        <p class="symptom-desc">Complex Gemfiles with native extensions take forever. Parallel downloads are an afterthought.</p>
+      </div>
+      <div class="symptom">
+        <p class="symptom-name">Docker gem issues</p>
+        <p class="symptom-desc">"gem not found" errors in containers. Bundler path mismatches between dev and prod.</p>
+      </div>
+      <div class="symptom">
+        <p class="symptom-name">500ms just to start</p>
+        <p class="symptom-desc">Ruby interpreter startup + Bundler loading = half second gone before any work.</p>
+      </div>
+      <div class="symptom">
+        <p class="symptom-name">Slow CI/CD</p>
+        <p class="symptom-desc">Gem installation is the bottleneck. Every commit waits for bundler to finish.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-5);
+  }
+
+  .sect-body {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    max-width: 600px;
+    line-height: 1.65;
+    margin-bottom: var(--sp-12);
+  }
+
+  .symptoms {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: var(--sp-12);
+  }
+
+  .symptom {
+    padding: var(--sp-6);
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .symptom:nth-child(2n) { border-right: none; }
+  .symptom:nth-child(3), .symptom:nth-child(4) { border-top: 1px solid var(--border); }
+
+  .symptom-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    margin-bottom: var(--sp-2);
+  }
+
+  .symptom-desc {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.55;
+  }
+
+  @media (max-width: 640px) {
+    .symptoms { grid-template-columns: 1fr; }
+    .symptom { border-right: none; }
+  }
+</style>

@@ -1,0 +1,22 @@
+---
+import LandingLayout from '../layouts/LandingLayout.astro'
+import Navbar from '../components/landing/Navbar.astro'
+import Hero from '../components/landing/Hero.astro'
+import ProblemSection from '../components/landing/ProblemSection.astro'
+import SolutionSection from '../components/landing/SolutionSection.astro'
+import FeaturesGrid from '../components/landing/FeaturesGrid.astro'
+import BenchmarksSection from '../components/landing/BenchmarksSection.astro'
+import CTASection from '../components/landing/CTASection.astro'
+import Footer from '../components/landing/Footer.astro'
+---
+
+<LandingLayout title="Pack — Blazingly Fast Ruby Package Manager" description="Pack is an ultra-fast Ruby package manager written in Rust. Sub-second dependency resolution, native gem installation, and first-class Rails support.">
+  <Navbar />
+  <Hero />
+  <ProblemSection />
+  <SolutionSection />
+  <FeaturesGrid />
+  <BenchmarksSection />
+  <CTASection />
+  <Footer />
+</LandingLayout>

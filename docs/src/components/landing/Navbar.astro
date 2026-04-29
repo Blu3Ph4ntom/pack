@@ -1,0 +1,162 @@
+---
+import { withBase } from '../../utils/base'
+---
+
+<header class="nav" x-data="{ open: false }">
+  <div class="wrap nav-inner">
+    <a href={withBase('/')} class="nav-brand" aria-label="Pack Home">
+      <span class="nav-logo">
+        <svg width="110" height="28" viewBox="0 0 110 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="28" height="28" rx="6" fill="url(#gradient)"/>
+          <text x="14" y="20" text-anchor="middle" fill="white" font-family="system-ui" font-size="16" font-weight="bold">P</text>
+          <text x="38" y="19" fill="currentColor" font-family="var(--font-mono)" font-size="14" font-weight="600">ack</text>
+          <defs>
+            <linearGradient id="gradient" x1="0" y1="0" x2="28" y2="28">
+              <stop stop-color="#ff6b6b"/>
+              <stop offset="1" stop-color="#ee5a24"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+    </a>
+
+    <nav class="nav-links" :class="{ 'is-open': open }">
+      <a href="#features">Features</a>
+      <a href="#benchmarks">Performance</a>
+      <a href={withBase('/docs/')}>Docs</a>
+      <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href={withBase('/docs/getting-started')} class="nav-cta">Get Started</a>
+      <button class="nav-burger" @click="open = !open" :aria-expanded="open" aria-label="Menu">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--nav-h);
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: var(--sp-8);
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    margin-right: auto;
+    text-decoration: none;
+    transition: opacity var(--duration) var(--ease);
+    color: var(--fg);
+  }
+
+  .nav-brand:hover { opacity: 0.8; text-decoration: none; }
+
+  .nav-logo {
+    display: block;
+    height: 28px;
+    width: auto;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-6);
+  }
+
+  .nav-links a {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    transition: color var(--duration) var(--ease);
+    font-weight: 500;
+  }
+
+  .nav-links a:hover { color: var(--fg); text-decoration: none; }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+
+  .nav-cta {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    transition: transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+  }
+
+  .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); text-decoration: none; }
+
+  .nav-burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--sp-1);
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-burger span {
+    display: block;
+    height: 2px;
+    background: var(--fg);
+    border-radius: 10px;
+    transition: width var(--duration) var(--ease), transform var(--duration) var(--ease);
+  }
+
+  .nav-burger span:nth-child(1) { width: 20px; }
+  .nav-burger span:nth-child(2) { width: 14px; }
+
+  @media (max-width: 768px) {
+    .nav-inner { gap: 0; }
+    .nav-cta { display: none; }
+    .nav-burger { display: flex; }
+
+    .nav-links {
+      position: fixed;
+      inset: var(--nav-h) 0 0 0;
+      background: var(--bg);
+      flex-direction: column;
+      align-items: flex-start;
+      padding: var(--sp-8);
+      gap: var(--sp-6);
+      border-top: 1px solid var(--border);
+      transform: translateY(-8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+    }
+
+    .nav-links.is-open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .nav-links a { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+  }
+</style>

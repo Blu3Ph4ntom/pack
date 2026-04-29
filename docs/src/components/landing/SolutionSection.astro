@@ -1,0 +1,92 @@
+---
+---
+
+<section class="sect" id="solution">
+  <div class="wrap">
+
+    <p class="sect-eyebrow" data-reveal>The Solution</p>
+    <h2 class="sect-heading" data-reveal>Native gem management<br />without the overhead.</h2>
+    <p class="sect-body" data-reveal>
+      Pack talks directly to RubyGems.org. No Ruby interpreter, no Bundler.<br />
+      Just fast, parallel gem installation with sub-millisecond lockfile parsing.
+    </p>
+
+    <div class="code-preview" data-reveal>
+      <pre><code><span class="comment"># Install gems in seconds, not minutes</span>
+$ pack install
+Installing 47 gems... <span class="success">done</span> <span class="muted">in 2.3s</span>
+
+<span class="comment"># Parse lockfile instantly</span>
+$ time pack lock
+<span class="success">15µs</span>
+
+<span class="comment"># Start Rails server immediately</span>
+$ pack server
+<span class="muted">Pack v0.1.0 — Rails 8.0.0</span>
+<span class="success">Server running on http://localhost:3000</span></code></pre>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-5);
+  }
+
+  .sect-body {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    max-width: 600px;
+    line-height: 1.65;
+    margin-bottom: var(--sp-12);
+  }
+
+  .code-preview {
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-6);
+    overflow-x: auto;
+  }
+
+  .code-preview pre {
+    margin: 0;
+  }
+
+  .code-preview code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--fg);
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .code-preview .comment { color: var(--fg-muted); }
+  .code-preview .success { color: var(--green); }
+  .code-preview .muted { color: var(--fg-muted); }
+
+  @media (max-width: 640px) {
+    .code-preview { padding: var(--sp-4); }
+    .code-preview code { font-size: var(--text-xs); }
+  }
+</style>

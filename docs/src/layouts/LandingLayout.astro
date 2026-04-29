@@ -1,0 +1,78 @@
+---
+import { withBase } from '../utils/base'
+
+export interface Props {
+  title: string
+  description?: string
+}
+
+const { title, description = "Blazingly fast Ruby package manager written in Rust." } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>{title}</title>
+  <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style is:global>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0f;
+      --fg: #f0f0f5;
+      --fg-dim: #a0a0b0;
+      --fg-muted: #606070;
+      --accent: #ff6b6b;
+      --accent-dim: #cc5555;
+      --code-bg: #111111;
+      --code-border: #1e1e1e;
+      --success: #00cc88;
+      --warning: #ffb224;
+      --red: #ff4444;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'DM Mono', 'Fira Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--fg);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code { font-family: var(--font-mono); font-size: 0.9em; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <slot />
+</body>
+</html>
