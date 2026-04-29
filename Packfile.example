@@ -1,0 +1,275 @@
+# Packfile - Rails Development Tasks
+#
+# This file defines project-specific tasks for pack.
+# Copy to your Rails project root and customize as needed.
+#
+# Usage:
+#   pack run <task>    Run a task
+#   pack tasks         List all tasks
+#   pack tasks --verbose  Show task details
+
+# Development tasks
+[tasks.dev]
+command = "rails server -b 0.0.0.0"
+description = "Start Rails development server"
+
+[tasks.dev:css]
+command = "./bin/importmap css"
+description = "Rebuild CSS with dart-sass"
+
+[tasks.dev:js]
+command = "./bin/importmap pin"
+description = "Importmap JavaScript dependencies"
+
+[tasks.console]
+command = "rails console"
+description = "Open Rails console"
+
+[tasks.sandbox]
+command = "rails console --sandbox"
+description = "Open Rails console in sandbox mode"
+
+# Database tasks
+[tasks.db:console]
+command = "rails dbconsole"
+description = "Open database console"
+
+[tasks.db:migrate]
+command = "rails db:migrate"
+description = "Run database migrations"
+
+[tasks.db:migrate:down]
+command = "rails db:migrate:down"
+description = "Rollback last migration"
+
+[tasks.db:migrate:up]
+command = "rails db:migrate:up"
+description = "Run next pending migration"
+
+[tasks.db:seed]
+command = "rails db:seed"
+description = "Seed the database"
+
+[tasks.db:reset]
+command = "rails db:drop db:create db:migrate db:seed"
+description = "Reset database (drop, create, migrate, seed)"
+
+[tasks.db:schema]
+command = "rails db:schema:dump"
+description = "Dump database schema"
+
+[tasks.db:test]
+command = "rails db:test:prepare"
+description = "Prepare test database"
+
+# Testing tasks
+[tasks.test]
+command = "rails test"
+description = "Run Rails tests"
+
+[tasks.test:all]
+command = "rails test:all"
+description = "Run all tests including integration"
+
+[tasks.test:units]
+command = "rails test:units"
+description = "Run unit tests only"
+
+[tasks.test:functionals]
+command = "rails test:functionals"
+description = "Run functional tests only"
+
+[tasks.test:integration]
+command = "rails test:integration"
+description = "Run integration tests only"
+
+[tasks.rspec]
+command = "rspec"
+description = "Run RSpec tests"
+
+[tasks.rspec:unit]
+command = "rspec spec/models spec/services"
+description = "Run RSpec unit tests"
+
+[tasks.rspec:feature]
+command = "rspec spec/features"
+description = "Run RSpec feature specs"
+
+[tasks.rspec:coverage]
+command = "COVERAGE=true rspec"
+description = "Run tests with code coverage"
+
+# Asset pipeline
+[tasks.assets]
+command = "rails assets:precompile"
+description = "Precompile assets for production"
+
+[tasks.assets:clobber]
+command = "rails assets:clobber"
+description = "Remove compiled assets"
+
+[tasks.assets:clean]
+command = "rails assets:clean"
+description = "Remove old compiled assets"
+
+[tasks.assets:info]
+command = "rails assets:info"
+description = "Show asset pipeline info"
+
+# Cache tasks
+[tasks.cache]
+command = "rails cache:clear"
+description = "Clear Rails cache"
+
+[tasks.cache:warm]
+command = "rails cache:warm"
+description = "Warm the cache"
+
+# Background jobs
+[tasks.jobs:work]
+command = "bundle exec sidekiq"
+description = "Start Sidekiq worker"
+
+[tasks.jobs:work:test]
+command = "bundle exec sidekiq -q test"
+description = "Start Sidekiq worker for test queue"
+
+[tasks.jobs:clear]
+command = "rails jobs:clear"
+description = "Clear background jobs"
+
+# Code quality
+[tasks.lint]
+command = "rubocop -a"
+description = "Run Rubocop with auto-fix"
+
+[tasks.lint:check]
+command = "rubocop"
+description = "Run Rubocop without auto-fix"
+
+[tasks.lint:brakeman]
+command = "brakeman -z"
+description = "Run Brakeman security scanner"
+
+[tasks.audit]
+command = "bundle audit"
+description = "Check gems for security vulnerabilities"
+
+# Documentation
+[tasks.doc]
+command = "bundle exec rake doc:rails"
+description = "Generate Rails API documentation"
+
+[tasks.doc:guides]
+command = "bundle exec rake guides:generate"
+description = "Generate Rails guides"
+
+# Development helpers
+[tasks.log]
+command = "tail -f log/development.log"
+description = "Tail development log"
+
+[tasks.log:test]
+command = "tail -f log/test.log"
+description = "Tail test log"
+
+[tasks.restart]
+command = "touch tmp/restart.txt"
+description = "Restart Puma (touch tmp/restart.txt)"
+
+[tasks.routes]
+command = "rails routes | grep"
+description = "Show Rails routes (use: pack rake 'routes[users]')"
+
+[tasks.info]
+command = "rails about"
+description = "Show Rails app info"
+
+# Deployment tasks
+[tasks.deploy]
+command = "kamal deploy"
+description = "Deploy to production with Kamal"
+
+[tasks.deploy:rollback]
+command = "kamal deploy:rollback"
+description = "Rollback to previous deployment"
+
+[tasks.deploy:access]
+command = "kamal access"
+description = "Access production server"
+
+[tasks.deploy:logs]
+command = "kamal logs"
+description = "View production logs"
+
+[tasks.deploy:doctor]
+command = "kamal deploy:doctor"
+description = "Run pre-deployment health checks"
+
+# Docker tasks
+[tasks.docker:build]
+command = "docker compose build"
+description = "Build Docker images"
+
+[tasks.docker:up]
+command = "docker compose up"
+description = "Start Docker containers"
+
+[tasks.docker:down]
+command = "docker compose down"
+description = "Stop Docker containers"
+
+[tasks.docker:restart]
+command = "docker compose restart"
+description = "Restart Docker containers"
+
+[tasks.docker:logs]
+command = "docker compose logs -f"
+description = "View Docker logs"
+
+[tasks.docker:console]
+command = "docker compose exec web rails console"
+description = "Open Rails console in Docker"
+
+[tasks.docker:db]
+command = "docker compose exec db psql -U postgres"
+description = "Open database console in Docker"
+
+# CI/CD tasks
+[tasks.ci]
+command = "rails test && rubocop && bundle audit"
+description = "Run full CI pipeline"
+
+[tasks.ci:fast]
+command = "rails test"
+description = "Fast CI test (no linting)"
+
+# Gem management
+[tasks.gems:update]
+command = "bundle update"
+description = "Update all gems"
+
+[tasks.gems:install]
+command = "bundle install"
+description = "Install gems"
+
+[tasks.gems:lock]
+command = "pack lock"
+description = "Generate pack.lock"
+
+[tasks.gems:clean]
+command = "bundle clean"
+description = "Remove unused gems"
+
+# Debug tasks
+[tasks.debug:routes]
+command = "rails routes | head -50"
+description = "Show first 50 routes"
+
+[tasks.debug:dead]
+command = "bundle exec rake middleware"
+description = "Show middleware stack"
+
+[tasks.debug:models]
+command = "rails runner 'puts ActiveRecord::Base.descendants.map(&:name)'"
+description = "List all ActiveRecord models"
