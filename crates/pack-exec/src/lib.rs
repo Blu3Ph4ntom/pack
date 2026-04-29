@@ -22,13 +22,7 @@ pub struct Executor {
 
 impl Executor {
     pub fn new() -> Self {
-        let cache_dir = env::var("PACK_CACHE_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| {
-                env::var("HOME")
-                    .map(|h| PathBuf::from(h).join(".cache").join("pack"))
-                    .unwrap_or_else(|_| PathBuf::from(".cache/pack"))
-            });
+        let cache_dir = Self::default_cache_dir();
 
         Self {
             bundle_path: env::var("BUNDLE_PATH").ok(),
@@ -36,6 +30,70 @@ impl Executor {
             gem_path: env::var("GEM_PATH").ok(),
             cache_dir,
         }
+    }
+
+    fn default_cache_dir() -> PathBuf {
+        env::var("PACK_CACHE_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                env::var("HOME")
+                    .map(|h| PathBuf::from(h).join(".cache").join("pack"))
+                    .unwrap_or_else(|_| PathBuf::from(".cache/pack"))
+            })
+    }
+
+    pub fn with_cache_dir(cache_dir: PathBuf) -> Self {
+        Self {
+            bundle_path: env::var("BUNDLE_PATH").ok(),
+            gem_home: env::var("GEM_HOME").ok(),
+            gem_path: env::var("GEM_PATH").ok(),
+            cache_dir,
+        }
+    }
+
+    pub fn with_gem_home(gem_home: PathBuf) -> Self {
+        Self {
+            bundle_path: env::var("BUNDLE_PATH").ok(),
+            gem_home: Some(gem_home.to_string_lossy().to_string()),
+            gem_path: None,
+            cache_dir: Self::default_cache_dir(),
+        }
+    }
+
+    pub fn bundle_path(&self) -> Option<&str> {
+        self.bundle_path.as_deref()
+    }
+
+    pub fn gem_home_opt(&self) -> Option<&str> {
+        self.gem_home.as_deref()
+    }
+
+    pub fn gem_path_opt(&self) -> Option<&str> {
+        self.gem_path.as_deref()
+    }
+
+    pub fn is_ruby_available(&self) -> bool {
+        Command::new("ruby")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
+
+    pub fn is_gem_available(&self) -> bool {
+        Command::new("gem")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
+
+    pub fn is_bundle_available(&self) -> bool {
+        Command::new("bundle")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
     }
 
     /// Execute a command directly (like `gem install` or `gem list`)
