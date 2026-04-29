@@ -156,8 +156,64 @@ impl RubyEnvironment {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub struct GemName(pub String);
 
+impl GemName {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self(name.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn to_lowercase(&self) -> String {
+        self.0.to_lowercase()
+    }
+
+    pub fn starts_with(&self, prefix: &str) -> bool {
+        self.0.starts_with(prefix)
+    }
+
+    pub fn ends_with(&self, suffix: &str) -> bool {
+        self.0.ends_with(suffix)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub struct GemVersion(pub String);
+
+impl GemVersion {
+    pub fn new(version: impl Into<String>) -> Self {
+        Self(version.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn major(&self) -> Option<u64> {
+        self.0.split('.').next()?.parse().ok()
+    }
+
+    pub fn minor(&self) -> Option<u64> {
+        self.0.split('.').nth(1)?.parse().ok()
+    }
+
+    pub fn patch(&self) -> Option<u64> {
+        self.0.split('.').nth(2)?.parse().ok()
+    }
+
+    pub fn is_prerelease(&self) -> bool {
+        self.0.contains("alpha") || self.0.contains("beta") || self.0.contains("rc")
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Dependency {
