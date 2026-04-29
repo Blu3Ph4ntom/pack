@@ -357,6 +357,48 @@ pub struct GemInfo {
     pub development_dependencies: Vec<DependencySpec>,
 }
 
+impl GemInfo {
+    pub fn name_str(&self) -> &str {
+        &self.name.0
+    }
+
+    pub fn version_str(&self) -> &str {
+        &self.version.0
+    }
+
+    pub fn has_homepage(&self) -> bool {
+        self.homepage.is_some()
+    }
+
+    pub fn has_documentation(&self) -> bool {
+        self.documentation.is_some()
+    }
+
+    pub fn has_source_code(&self) -> bool {
+        self.source_code.is_some()
+    }
+
+    pub fn license_string(&self) -> String {
+        if self.licenses.is_empty() {
+            "None".to_string()
+        } else {
+            self.licenses.join(", ")
+        }
+    }
+
+    pub fn total_dependencies(&self) -> usize {
+        self.dependencies.len() + self.development_dependencies.len()
+    }
+
+    pub fn runtime_dep_count(&self) -> usize {
+        self.dependencies.len()
+    }
+
+    pub fn dev_dep_count(&self) -> usize {
+        self.development_dependencies.len()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct DependencySpec {
     pub name: GemName,
@@ -369,6 +411,30 @@ pub struct GemSearchResult {
     pub version: GemVersion,
     pub downloads: u64,
     pub description: String,
+}
+
+impl GemSearchResult {
+    pub fn name(&self) -> &str {
+        &self.name.0
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version.0
+    }
+
+    pub fn downloads_formatted(&self) -> String {
+        if self.downloads >= 1_000_000 {
+            format!("{:.1}M", self.downloads as f64 / 1_000_000.0)
+        } else if self.downloads >= 1_000 {
+            format!("{:.1}K", self.downloads as f64 / 1_000.0)
+        } else {
+            self.downloads.to_string()
+        }
+    }
+
+    pub fn has_description(&self) -> bool {
+        !self.description.is_empty()
+    }
 }
 
 #[derive(Debug)]
