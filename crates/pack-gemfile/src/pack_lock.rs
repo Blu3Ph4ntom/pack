@@ -90,6 +90,11 @@ impl PackLock {
         self.gems.get(name)
     }
 
+    /// Check if a gem exists
+    pub fn has_gem(&self, name: &GemName) -> bool {
+        self.gems.contains_key(name)
+    }
+
     /// List all gem names
     pub fn gem_names(&self) -> Vec<&GemName> {
         self.gems.keys().collect()
@@ -103,6 +108,26 @@ impl PackLock {
     /// Check if empty
     pub fn is_empty(&self) -> bool {
         self.gems.is_empty()
+    }
+
+    /// Remove a gem from the lockfile
+    pub fn remove_gem(&mut self, name: &GemName) -> bool {
+        self.gems.remove(name).is_some()
+    }
+
+    /// Add a gem with full specification
+    pub fn add_locked_gem(&mut self, gem: LockedGem) {
+        self.gems.insert(gem.name.clone(), gem);
+    }
+
+    /// Get all gem versions as a vector
+    pub fn all_gems(&self) -> Vec<&LockedGem> {
+        self.gems.values().collect()
+    }
+
+    /// Get the number of dependencies across all gems
+    pub fn total_dependencies(&self) -> usize {
+        self.gems.values().map(|g| g.dependencies.len()).sum()
     }
 
     /// Write lockfile to path (binary MessagePack format)
