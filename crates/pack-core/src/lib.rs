@@ -366,4 +366,49 @@ mod tests {
         let pack_error = PackError::Registry("network error".to_string());
         assert_eq!(format!("{}", pack_error), "registry error: network error");
     }
+
+    #[test]
+    fn test_gem_name_helpers() {
+        let name = GemName::new("Rails");
+        assert_eq!(name.as_str(), "Rails");
+        assert_eq!(name.to_lowercase(), "rails");
+        assert!(!name.is_empty());
+        assert!(name.starts_with("R"));
+        assert!(name.ends_with("ls"));
+    }
+
+    #[test]
+    fn test_gem_version_helpers() {
+        let version = GemVersion::new("7.1.3");
+        assert_eq!(version.as_str(), "7.1.3");
+        assert_eq!(version.major(), Some(7));
+        assert_eq!(version.minor(), Some(1));
+        assert_eq!(version.patch(), Some(3));
+        assert!(!version.is_prerelease());
+
+        let pre = GemVersion::new("7.1.0.alpha1");
+        assert!(pre.is_prerelease());
+    }
+
+    #[test]
+    fn test_dependency_builder() {
+        let dep = Dependency::new("rails")
+            .with_version("7.1.0")
+            .in_group("test");
+
+        assert_eq!(dep.name_str(), "rails");
+        assert_eq!(dep.version_str(), Some("7.1.0"));
+        assert_eq!(dep.group_str(), Some("test"));
+        assert!(dep.is_in_group("test"));
+        assert!(!dep.is_in_group("development"));
+        assert!(dep.matches_name("rails"));
+    }
+
+    #[test]
+    fn test_dependency_builder_minimal() {
+        let dep = Dependency::new("rake");
+        assert_eq!(dep.name_str(), "rake");
+        assert!(dep.version_str().is_none());
+        assert!(dep.group_str().is_none());
+    }
 }
