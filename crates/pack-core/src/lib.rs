@@ -2,6 +2,7 @@
 
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+use serde::{Serialize, Deserialize};
 
 #[derive(Error, Debug)]
 pub enum PackError {
@@ -144,10 +145,10 @@ impl RubyEnvironment {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub struct GemName(pub String);
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub struct GemVersion(pub String);
 
 #[derive(Debug, Clone)]
@@ -161,4 +162,104 @@ pub struct Dependency {
 pub struct InstallPlan {
     pub gems_to_install: Vec<Dependency>,
     pub cached_gems: Vec<Dependency>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gem_name_equality() {
+        let name1 = GemName("rails".to_string());
+        let name2 = GemName("rails".to_string());
+        let name3 = GemName("rake".to_string());
+
+        assert_eq!(name1, name2);
+        assert_ne!(name1, name3);
+    }
+
+    #[test]
+    fn test_gem_version_equality() {
+        let v1 = GemVersion("7.1.0".to_string());
+        let v2 = GemVersion("7.1.0".to_string());
+        let v3 = GemVersion("7.0.0".to_string());
+
+        assert_eq!(v1, v2);
+        assert_ne!(v1, v3);
+    }
+
+    #[test]
+    fn test_dependency() {
+        let dep = Dependency {
+            name: GemName("rails".to_string()),
+            version: Some(GemVersion("7.1.0".to_string())),
+            group: Some("test".to_string()),
+        };
+
+        assert_eq!(dep.name.0, "rails");
+        assert_eq!(dep.version.unwrap().0, "7.1.0");
+        assert_eq!(dep.group.unwrap(), "test");
+    }
+
+    #[test]
+    fn test_dependency_no_version() {
+        let dep = Dependency {
+            name: GemName("rake".to_string()),
+            version: None,
+            group: None,
+        };
+
+        assert_eq!(dep.name.0, "rake");
+        assert!(dep.version.is_none());
+        assert!(dep.group.is_none());
+    }
+
+    #[test]
+    fn test_install_plan() {
+        let plan = InstallPlan {
+            gems_to_install: vec![
+                Dependency {
+                    name: GemName("rails".to_string()),
+                    version: Some(GemVersion("7.1.0".to_string())),
+                    group: None,
+                },
+            ],
+            cached_gems: vec![
+                Dependency {
+                    name: GemName("rake".to_string()),
+                    version: None,
+                    group: None,
+                },
+            ],
+        };
+
+        assert_eq!(plan.gems_to_install.len(), 1);
+        assert_eq!(plan.cached_gems.len(), 1);
+    }
+
+    #[test]
+    fn test_pack_error_io() {
+        use std::io;
+        let io_error = io::Error::new(io::ErrorKind::NotFound, "file not found");
+        let pack_error = PackError::Io(io_error);
+        assert!(format!("{}", pack_error).contains("file not found"));
+    }
+
+    #[test]
+    fn test_pack_error_project() {
+        let pack_error = PackError::Project("no gemfile found".to_string());
+        assert_eq!(format!("{}", pack_error), "project error: no gemfile found");
+    }
+
+    #[test]
+    fn test_pack_error_gemfile() {
+        let pack_error = PackError::Gemfile("parse error".to_string());
+        assert_eq!(format!("{}", pack_error), "gemfile error: parse error");
+    }
+
+    #[test]
+    fn test_pack_error_registry() {
+        let pack_error = PackError::Registry("network error".to_string());
+        assert_eq!(format!("{}", pack_error), "registry error: network error");
+    }
 }
