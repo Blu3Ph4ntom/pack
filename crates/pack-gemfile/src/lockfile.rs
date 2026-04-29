@@ -327,6 +327,23 @@ pub fn find_dependency_path(lockfile: &Lockfile, target: &GemName) -> Option<Vec
     None
 }
 
+pub fn format_dependency_path(path: &[GemName]) -> String {
+    if path.is_empty() {
+        return String::new();
+    }
+
+    let mut result = path[0].0.clone();
+    for gem in path.iter().skip(1) {
+        result.push_str(" -> ");
+        result.push_str(&gem.0);
+    }
+    result
+}
+
+pub fn gem_depth(lockfile: &Lockfile, target: &GemName) -> Option<usize> {
+    find_dependency_path(lockfile, target).map(|p| p.len())
+}
+
 fn find_path_recursive(
     lockfile: &Lockfile,
     target: &GemName,
