@@ -1,11 +1,11 @@
 //! Gemfile and Gemfile.lock parsing.
 
-use pack_core::{GemName, GemVersion, Dependency, PackError, PackResult};
+use pack_core::{Dependency, GemName, GemVersion, PackError, PackResult};
 use std::path::PathBuf;
 
 pub mod lockfile;
 
-pub use lockfile::{Lockfile, GemSpec, load_lockfile, find_dependency_path};
+pub use lockfile::{find_dependency_path, load_lockfile, GemSpec, Lockfile};
 
 pub struct Gemfile {
     pub path: PathBuf,
@@ -39,7 +39,10 @@ pub fn parse_gemfile(content: &str) -> PackResult<Vec<Dependency>> {
 
     for line in content.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with("gem ") || trimmed.starts_with("gem'") || trimmed.starts_with("gem\"") {
+        if trimmed.starts_with("gem ")
+            || trimmed.starts_with("gem'")
+            || trimmed.starts_with("gem\"")
+        {
             if let Some(dep) = parse_gem_line(trimmed) {
                 deps.push(dep);
             }
@@ -74,7 +77,10 @@ fn parse_groups(content: &str) -> Vec<GemGroup> {
                 current_group = Some(rest.trim_end_matches(':').to_string());
             }
         } else if current_group.is_some() {
-            if trimmed.starts_with("gem ") || trimmed.starts_with("gem'") || trimmed.starts_with("gem\"") {
+            if trimmed.starts_with("gem ")
+                || trimmed.starts_with("gem'")
+                || trimmed.starts_with("gem\"")
+            {
                 if let Some(dep) = parse_gem_line_with_group(trimmed, current_group.as_deref()) {
                     current_gems.push(dep);
                 }
@@ -93,7 +99,10 @@ fn parse_groups(content: &str) -> Vec<GemGroup> {
 
     if let Some(name) = current_group {
         if !current_gems.is_empty() {
-            groups.push(GemGroup { name, gems: current_gems });
+            groups.push(GemGroup {
+                name,
+                gems: current_gems,
+            });
         }
     }
 
@@ -109,10 +118,10 @@ fn parse_gem_line_with_group(line: &str, group: Option<&str>) -> Option<Dependen
 
     let (name, rest) = if content.starts_with("'") {
         let end = content[1..].find('\'')?;
-        (&content[1..end], &content[end+1..])
+        (&content[1..end], &content[end + 1..])
     } else if content.starts_with("\"") {
         let end = content[1..].find('\"')?;
-        (&content[1..end], &content[end+1..])
+        (&content[1..end], &content[end + 1..])
     } else {
         let end = content.find(|c: char| c.is_whitespace() || c == ',')?;
         (&content[..end], &content[end..])
@@ -170,7 +179,12 @@ fn parse_version_from_rest(rest: &str) -> Option<GemVersion> {
     None
 }
 
-pub fn add_gem(path: &PathBuf, name: &str, version: Option<&str>, group: Option<&str>) -> PackResult<()> {
+pub fn add_gem(
+    path: &PathBuf,
+    name: &str,
+    version: Option<&str>,
+    group: Option<&str>,
+) -> PackResult<()> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
 

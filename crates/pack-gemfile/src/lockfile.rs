@@ -82,13 +82,18 @@ fn parse_specs(content: &str) -> PackResult<HashMap<GemName, GemSpec>> {
             continue;
         }
 
-        if trimmed == "PLATFORMS" || trimmed == "DEPENDENCIES" || trimmed.starts_with("BUNDLED WITH") {
+        if trimmed == "PLATFORMS"
+            || trimmed == "DEPENDENCIES"
+            || trimmed.starts_with("BUNDLED WITH")
+        {
             if in_specs {
                 if let Some(name) = current_name.take() {
                     specs.insert(
                         name,
                         GemSpec {
-                            version: current_version.take().unwrap_or(GemVersion("unknown".to_string())),
+                            version: current_version
+                                .take()
+                                .unwrap_or(GemVersion("unknown".to_string())),
                             dependencies: current_deps.drain(..).collect(),
                         },
                     );
@@ -111,7 +116,9 @@ fn parse_specs(content: &str) -> PackResult<HashMap<GemName, GemSpec>> {
                     specs.insert(
                         name,
                         GemSpec {
-                            version: current_version.take().unwrap_or(GemVersion("unknown".to_string())),
+                            version: current_version
+                                .take()
+                                .unwrap_or(GemVersion("unknown".to_string())),
                             dependencies: current_deps.drain(..).collect(),
                         },
                     );
@@ -124,10 +131,10 @@ fn parse_specs(content: &str) -> PackResult<HashMap<GemName, GemSpec>> {
                 }
             } else if is_dependency {
                 if let Some(ref name) = current_name {
-                    let dep_name = parse_dep_line(trimmed);
-                    if let Some(dn) = dep_name {
-                        if dn != *name {
-                            current_deps.push(dn);
+                    let dep_name = parse_dep_line(line, trimmed);
+                    if let Some(ref dn) = dep_name {
+                        if dn != name {
+                            current_deps.push(dn.clone());
                         }
                     }
                 }
@@ -139,7 +146,9 @@ fn parse_specs(content: &str) -> PackResult<HashMap<GemName, GemSpec>> {
         specs.insert(
             name,
             GemSpec {
-                version: current_version.take().unwrap_or(GemVersion("unknown".to_string())),
+                version: current_version
+                    .take()
+                    .unwrap_or(GemVersion("unknown".to_string())),
                 dependencies: current_deps,
             },
         );
@@ -175,7 +184,13 @@ fn parse_spec_name_version(line: &str) -> (Option<GemName>, Option<GemVersion>) 
     };
 
     let name = name.trim();
-    if name.is_empty() || name == "PLATFORMS" || name == "DEPENDENCIES" || name == "BUNDLED WITH" || name == "GEM" || name == "specs:" {
+    if name.is_empty()
+        || name == "PLATFORMS"
+        || name == "DEPENDENCIES"
+        || name == "BUNDLED WITH"
+        || name == "GEM"
+        || name == "specs:"
+    {
         return (None, None);
     }
 
@@ -187,14 +202,13 @@ fn parse_spec_name_version(line: &str) -> (Option<GemName>, Option<GemVersion>) 
     (Some(GemName(name.to_string())), version)
 }
 
-fn parse_dep_line(line: &str) -> Option<GemName> {
-    let trimmed = line.trim();
+fn parse_dep_line(line: &str, trimmed: &str) -> Option<GemName> {
     if trimmed.is_empty() {
         return None;
     }
 
-    if trimmed.starts_with("  ") {
-        let content = trimmed.trim_start_matches("  ");
+    if line.starts_with("  ") {
+        let content = trimmed;
         if content.starts_with("dep ") || content.starts_with("require ") {
             let rest = content
                 .strip_prefix("dep ")
@@ -235,10 +249,7 @@ fn parse_dep_line(line: &str) -> Option<GemName> {
     None
 }
 
-pub fn find_dependency_path(
-    lockfile: &Lockfile,
-    target: &GemName,
-) -> Option<Vec<GemName>> {
+pub fn find_dependency_path(lockfile: &Lockfile, target: &GemName) -> Option<Vec<GemName>> {
     if lockfile.specs.contains_key(target) {
         for top in &lockfile.top_level {
             if let Some(path) = find_path_recursive(lockfile, target, top, &mut Vec::new()) {

@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
-use pack_core::{Project, RubyEnvironment, GemName};
-use pack_gemfile::{load_lockfile, find_dependency_path, add_gem, remove_gem};
+use pack_core::{GemName, Project, RubyEnvironment};
+use pack_gemfile::{add_gem, find_dependency_path, load_lockfile, remove_gem};
 use std::io::Write;
 use std::process::Command;
 
@@ -75,7 +75,12 @@ fn main() {
         Some(Commands::Install) => {
             run_install();
         }
-        Some(Commands::Add { gem, version, group, no_install }) => {
+        Some(Commands::Add {
+            gem,
+            version,
+            group,
+            no_install,
+        }) => {
             run_add(&gem, version.as_deref(), group.as_deref(), no_install);
         }
         Some(Commands::Remove { gem, no_install }) => {

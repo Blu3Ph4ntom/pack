@@ -18,7 +18,11 @@ impl Registry {
 
     pub async fn fetch_gem_versions(&self, name: &GemName) -> PackResult<Vec<GemVersion>> {
         let url = format!("{}/api/v1/versions/{}.json", self.base_url, name.0);
-        let resp = self.client.get(&url).send().await
+        let resp = self
+            .client
+            .get(&url)
+            .send()
+            .await
             .map_err(|e| PackError::Registry(e.to_string()))?;
 
         #[derive(Deserialize)]
@@ -26,7 +30,9 @@ impl Registry {
             number: String,
         }
 
-        let versions: Vec<VersionRecord> = resp.json().await
+        let versions: Vec<VersionRecord> = resp
+            .json()
+            .await
             .map_err(|e| PackError::Registry(e.to_string()))?;
 
         Ok(versions.into_iter().map(|v| GemVersion(v.number)).collect())

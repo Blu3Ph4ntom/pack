@@ -1,7 +1,7 @@
 //! Pack core types shared across all crates.
 
-use thiserror::Error;
 use std::path::PathBuf;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum PackError {
@@ -94,7 +94,12 @@ impl RubyEnvironment {
             .ok()
             .and_then(|o| {
                 if o.status.success() {
-                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
+                    Some(
+                        String::from_utf8(o.stdout)
+                            .unwrap_or_default()
+                            .trim()
+                            .to_string(),
+                    )
                 } else {
                     None
                 }
@@ -112,7 +117,12 @@ impl RubyEnvironment {
             .ok()
             .and_then(|o| {
                 if o.status.success() {
-                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
+                    Some(
+                        String::from_utf8(o.stdout)
+                            .unwrap_or_default()
+                            .trim()
+                            .to_string(),
+                    )
                 } else {
                     None
                 }

@@ -9,7 +9,11 @@ impl Resolver {
         Self
     }
 
-    pub fn resolve(&self, deps: &[Dependency], _lock_deps: &[Dependency]) -> PackResult<Vec<GemName>> {
+    pub fn resolve(
+        &self,
+        deps: &[Dependency],
+        _lock_deps: &[Dependency],
+    ) -> PackResult<Vec<GemName>> {
         Ok(deps.iter().map(|d| d.name.clone()).collect())
     }
 }
