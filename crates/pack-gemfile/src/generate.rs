@@ -30,6 +30,18 @@ impl LockfileGenerator {
         self
     }
 
+    pub fn is_optional_included(&self) -> bool {
+        self.include_optional
+    }
+
+    pub fn update_gems_count(&self) -> usize {
+        self.update_gems.len()
+    }
+
+    pub fn should_update(&self, gem: &GemName) -> bool {
+        self.update_gems.is_empty() || self.update_gems.contains(gem)
+    }
+
     pub fn generate(&self, _gemfile_path: &PathBuf, deps: &[Dependency]) -> PackResult<GeneratedLockfile> {
         let mut specs: HashMap<GemName, GemSpecGen> = HashMap::new();
         let mut top_level: Vec<GemName> = Vec::new();
