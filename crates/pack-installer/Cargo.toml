@@ -5,4 +5,10 @@ edition = "2021"
 
 [dependencies]
 pack-core = { path = "../pack-core" }
+pack-cache = { path = "../pack-cache" }
+pack-gemfile = { path = "../pack-gemfile" }
 thiserror = "2"
+rayon = "1"
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+tokio = { version = "1", features = ["full"] }
+log = "0.4"

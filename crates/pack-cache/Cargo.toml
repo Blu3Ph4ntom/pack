@@ -7,3 +7,5 @@ edition = "2021"
 pack-core = { path = "../pack-core" }
 directories = "6"
 thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
