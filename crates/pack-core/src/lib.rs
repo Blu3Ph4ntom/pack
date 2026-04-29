@@ -1,6 +1,7 @@
 //! Pack core types shared across all crates.
 
 use thiserror::Error;
+use std::path::PathBuf;
 
 #[derive(Error, Debug)]
 pub enum PackError {
@@ -33,9 +34,34 @@ pub type PackResult<T> = Result<T, PackError>;
 
 #[derive(Debug, Clone)]
 pub struct Project {
-    pub path: std::path::PathBuf,
-    pub has_gemfile: bool,
-    pub has_gemfile_lock: bool,
+    pub path: PathBuf,
+    pub gemfile: Option<PathBuf>,
+    pub gemfile_lock: Option<PathBuf>,
+}
+
+impl Project {
+    pub fn discover() -> PackResult<Self> {
+        let path = std::env::current_dir()
+            .map_err(|e| PackError::Project(format!("failed to get current dir: {}", e)))?;
+
+        let gemfile = find_file(&path, "Gemfile");
+        let gemfile_lock = find_file(&path, "Gemfile.lock");
+
+        Ok(Self {
+            path,
+            gemfile,
+            gemfile_lock,
+        })
+    }
+}
+
+fn find_file(dir: &PathBuf, name: &str) -> Option<PathBuf> {
+    let path = dir.join(name);
+    if path.exists() {
+        Some(path)
+    } else {
+        None
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -45,6 +71,67 @@ pub struct RubyEnvironment {
     pub bundle_available: bool,
     pub gem_version: Option<String>,
     pub bundle_version: Option<String>,
+}
+
+impl RubyEnvironment {
+    pub fn discover() -> Self {
+        let ruby_version = std::process::Command::new("ruby")
+            .arg("--version")
+            .output()
+            .ok()
+            .and_then(|o| {
+                if o.status.success() {
+                    String::from_utf8(o.stdout).ok()
+                } else {
+                    None
+                }
+            })
+            .map(|s| s.trim().to_string());
+
+        let gem_version = std::process::Command::new("gem")
+            .arg("--version")
+            .output()
+            .ok()
+            .and_then(|o| {
+                if o.status.success() {
+                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
+                } else {
+                    None
+                }
+            });
+
+        let gem_available = std::process::Command::new("gem")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+
+        let bundle_version = std::process::Command::new("bundle")
+            .arg("--version")
+            .output()
+            .ok()
+            .and_then(|o| {
+                if o.status.success() {
+                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
+                } else {
+                    None
+                }
+            });
+
+        let bundle_available = std::process::Command::new("bundle")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+
+        Self {
+            ruby_version,
+            gem_available,
+            bundle_available,
+            gem_version,
+            bundle_version,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
