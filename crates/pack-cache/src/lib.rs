@@ -299,6 +299,30 @@ pub struct CachedGem {
     pub size: u64,
 }
 
+impl CachedGem {
+    pub fn new(name: String, version: String, path: PathBuf) -> Self {
+        Self {
+            name,
+            version,
+            path,
+            size: 0,
+        }
+    }
+
+    pub fn with_size(mut self, size: u64) -> Self {
+        self.size = size;
+        self
+    }
+
+    pub fn size_human(&self) -> String {
+        human_readable_size(self.size)
+    }
+
+    pub fn full_name(&self) -> String {
+        format!("{}-{}", self.name, self.version)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GemSpecCache {
     pub name: String,
@@ -306,6 +330,35 @@ pub struct GemSpecCache {
     pub dependencies: Vec<(String, String)>,
     pub platform: String,
     pub cached_at: u64,
+}
+
+impl GemSpecCache {
+    pub fn new(name: String, version: String) -> Self {
+        Self {
+            name,
+            version,
+            dependencies: vec![],
+            platform: "ruby".to_string(),
+            cached_at: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        }
+    }
+
+    pub fn with_dependencies(mut self, deps: Vec<(String, String)>) -> Self {
+        self.dependencies = deps;
+        self
+    }
+
+    pub fn with_platform(mut self, platform: String) -> Self {
+        self.platform = platform;
+        self
+    }
+
+    pub fn full_name(&self) -> String {
+        format!("{}-{}", self.name, self.version)
+    }
 }
 
 #[cfg(test)]
