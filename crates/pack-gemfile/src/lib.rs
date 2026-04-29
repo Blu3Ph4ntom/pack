@@ -200,19 +200,7 @@ pub fn add_gem(path: &PathBuf, name: &str, version: Option<&str>, group: Option<
     let content = std::fs::read_to_string(path)
         .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
 
-    let gem_line = if let Some(v) = version {
-        if let Some(g) = group {
-            format!("gem \"{}\", \"~> {}\"  # {}", name, v, g)
-        } else {
-            format!("gem \"{}\", \"~> {}\"", name, v)
-        }
-    } else {
-        if let Some(g) = group {
-            format!("gem '{}'  # {}", name, g)
-        } else {
-            format!("gem '{}'", name)
-        }
-    };
+    let gem_line = build_gem_line(name, version, group);
 
     let new_content = if content.ends_with('\n') {
         format!("{}{}", content, gem_line)
@@ -224,6 +212,22 @@ pub fn add_gem(path: &PathBuf, name: &str, version: Option<&str>, group: Option<
         .map_err(|e| PackError::Gemfile(format!("failed to write Gemfile: {}", e)))?;
 
     Ok(())
+}
+
+fn build_gem_line(name: &str, version: Option<&str>, group: Option<&str>) -> String {
+    if let Some(v) = version {
+        if let Some(g) = group {
+            format!("gem \"{}\", \"~> {}\"  # {}", name, v, g)
+        } else {
+            format!("gem \"{}\", \"~> {}\"", name, v)
+        }
+    } else {
+        if let Some(g) = group {
+            format!("gem '{}'  # {}", name, g)
+        } else {
+            format!("gem '{}'", name)
+        }
+    }
 }
 
 pub fn remove_gem(path: &PathBuf, name: &str) -> PackResult<bool> {
@@ -253,6 +257,61 @@ pub fn remove_gem(path: &PathBuf, name: &str) -> PackResult<bool> {
     }
 
     Ok(removed)
+}
+
+pub fn update_gem(path: &PathBuf, name: &str, new_version: &str) -> PackResult<bool> {
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
+
+    let mut updated = false;
+    let mut new_lines = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        let is_target = trimmed.starts_with(&format!("gem \"{}\"", name))
+            || trimmed.starts_with(&format!("gem '{}'", name))
+            || trimmed.starts_with(&format!("gem {}", name));
+
+        if is_target && !updated {
+            let new_line = format!("gem \"{}\", \"~> {}\"", name, new_version);
+            new_lines.push(new_line);
+            updated = true;
+        } else {
+            new_lines.push(line.to_string());
+        }
+    }
+
+    if updated {
+        let new_content = new_lines.join("\n");
+        std::fs::write(path, new_content)
+            .map_err(|e| PackError::Gemfile(format!("failed to write Gemfile: {}", e)))?;
+    }
+
+    Ok(updated)
+}
+
+pub fn find_gem(path: &PathBuf, name: &str) -> PackResult<Option<String>> {
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("gem \"{}\"", name))
+            || trimmed.starts_with(&format!("gem '{}'", name))
+            || trimmed.starts_with(&format!("gem {}", name)) {
+            return Ok(Some(trimmed.to_string()));
+        }
+    }
+
+    Ok(None)
+}
+
+pub fn list_gems(path: &PathBuf) -> PackResult<Vec<(String, Option<String>)>> {
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
+
+    let deps = parse_gemfile(&content)?;
+    Ok(deps.into_iter().map(|d| (d.name.0, d.version.map(|v| v.0))).collect())
 }
 
 #[cfg(test)]
