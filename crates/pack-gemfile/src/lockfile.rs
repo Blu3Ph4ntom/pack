@@ -296,3 +296,140 @@ fn find_path_recursive(
 
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEST_LOCKFILE: &str = r#"GEM
+  remote: https://rubygems.org/
+  specs:
+    actionpack (7.1.0)
+      actionview (= 7.1.0)
+      activesupport (= 7.1.0)
+      rack (>= 2.2.4)
+    actionview (7.1.0)
+      activesupport (= 7.1.0)
+    activesupport (7.1.0)
+      concurrent-ruby (~> 1.0)
+    concurrent-ruby (1.2.2)
+    rack (2.2.8)
+    rails (7.1.0)
+      actionpack (= 7.1.0)
+      bundler (>= 1.15.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rails (~> 7.1.0)
+
+BUNDLED WITH
+   2.4.0
+"#;
+
+    #[test]
+    fn test_parse_top_level() {
+        let top_level = parse_top_level(TEST_LOCKFILE);
+        assert_eq!(top_level.len(), 1);
+        assert_eq!(top_level[0].0, "rails");
+    }
+
+    #[test]
+    fn test_parse_specs() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        assert_eq!(specs.len(), 6);
+
+        assert!(specs.contains_key(&GemName("rails".to_string())));
+        assert!(specs.contains_key(&GemName("actionpack".to_string())));
+        assert!(specs.contains_key(&GemName("rack".to_string())));
+    }
+
+    #[test]
+    fn test_rails_dependencies() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        let rails_spec = specs.get(&GemName("rails".to_string())).unwrap();
+        assert_eq!(rails_spec.version.0, "7.1.0");
+        assert_eq!(rails_spec.dependencies.len(), 2);
+        let dep_names: Vec<_> = rails_spec.dependencies.iter().map(|d| d.0.clone()).collect();
+        assert!(dep_names.contains(&"actionpack".to_string()));
+        assert!(dep_names.contains(&"bundler".to_string()));
+    }
+
+    #[test]
+    fn test_actionpack_dependencies() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        let actionpack_spec = specs.get(&GemName("actionpack".to_string())).unwrap();
+        assert_eq!(actionpack_spec.version.0, "7.1.0");
+        let dep_names: Vec<_> = actionpack_spec.dependencies.iter().map(|d| d.0.clone()).collect();
+        assert!(dep_names.contains(&"actionview".to_string()));
+        assert!(dep_names.contains(&"activesupport".to_string()));
+        assert!(dep_names.contains(&"rack".to_string()));
+    }
+
+    #[test]
+    fn test_find_dependency_path_direct() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        let top_level = parse_top_level(TEST_LOCKFILE);
+        let lockfile = Lockfile {
+            path: PathBuf::from("/fake"),
+            content: TEST_LOCKFILE.to_string(),
+            specs,
+            top_level,
+        };
+
+        let path = find_dependency_path(&lockfile, &GemName("rails".to_string()));
+        assert!(path.is_some());
+        assert_eq!(path.unwrap(), vec![GemName("rails".to_string())]);
+    }
+
+    #[test]
+    fn test_find_dependency_path_nested() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        let top_level = parse_top_level(TEST_LOCKFILE);
+        let lockfile = Lockfile {
+            path: PathBuf::from("/fake"),
+            content: TEST_LOCKFILE.to_string(),
+            specs,
+            top_level,
+        };
+
+        let path = find_dependency_path(&lockfile, &GemName("rack".to_string()));
+        assert!(path.is_some());
+        let path = path.unwrap();
+        assert_eq!(path.len(), 3);
+        assert_eq!(path[0].0, "rails");
+        assert_eq!(path[1].0, "actionpack");
+        assert_eq!(path[2].0, "rack");
+    }
+
+    #[test]
+    fn test_find_dependency_path_not_found() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        let top_level = parse_top_level(TEST_LOCKFILE);
+        let lockfile = Lockfile {
+            path: PathBuf::from("/fake"),
+            content: TEST_LOCKFILE.to_string(),
+            specs,
+            top_level,
+        };
+
+        let path = find_dependency_path(&lockfile, &GemName("nonexistent".to_string()));
+        assert!(path.is_none());
+    }
+
+    #[test]
+    fn test_load_lockfile_from_content() {
+        let specs = parse_specs(TEST_LOCKFILE).unwrap();
+        let top_level = parse_top_level(TEST_LOCKFILE);
+        let lockfile = Lockfile {
+            path: PathBuf::from("/fake"),
+            content: TEST_LOCKFILE.to_string(),
+            specs,
+            top_level,
+        };
+
+        assert_eq!(lockfile.specs.len(), 6);
+        assert_eq!(lockfile.top_level.len(), 1);
+    }
+}
