@@ -1,11 +1,17 @@
 //! Gemfile and Gemfile.lock parsing.
 
-use pack_core::{Dependency, GemName, GemVersion, PackError, PackResult};
+use pack_core::{GemName, GemVersion, Dependency, PackError, PackResult};
 use std::path::PathBuf;
 
 pub mod lockfile;
+pub mod generate;
+pub mod pack_lock;
+pub mod packfile;
 
-pub use lockfile::{find_dependency_path, load_lockfile, GemSpec, Lockfile};
+pub use lockfile::{Lockfile, GemSpec, load_lockfile, find_dependency_path};
+pub use generate::{LockfileGenerator, GeneratedLockfile, GemSpecGen};
+pub use pack_lock::{PackLock, LockedGem, PackLockMetadata};
+pub use packfile::{Packfile, PackfileTask};
 
 pub struct Gemfile {
     pub path: PathBuf,
@@ -36,14 +42,27 @@ pub fn load_gemfile(path: &PathBuf) -> PackResult<Gemfile> {
 
 pub fn parse_gemfile(content: &str) -> PackResult<Vec<Dependency>> {
     let mut deps = Vec::new();
+    let mut in_group = false;
+    let mut current_group: Option<String> = None;
 
     for line in content.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with("gem ")
-            || trimmed.starts_with("gem'")
-            || trimmed.starts_with("gem\"")
-        {
-            if let Some(dep) = parse_gem_line(trimmed) {
+
+        if trimmed.starts_with("group ") {
+            in_group = true;
+            let rest = trimmed.strip_prefix("group").unwrap().trim();
+            if let Some(end) = rest.find(" do") {
+                let group_name = rest[..end].trim();
+                let clean_group = group_name.strip_prefix(':').unwrap_or(group_name);
+                current_group = Some(clean_group.to_string());
+            } else {
+                current_group = Some(rest.trim_end_matches(':').to_string());
+            }
+        } else if trimmed == "end" && in_group {
+            in_group = false;
+            current_group = None;
+        } else if trimmed.starts_with("gem ") || trimmed.starts_with("gem'") || trimmed.starts_with("gem\"") {
+            if let Some(dep) = parse_gem_line_with_group(trimmed, current_group.as_deref()) {
                 deps.push(dep);
             }
         }
@@ -72,15 +91,14 @@ fn parse_groups(content: &str) -> Vec<GemGroup> {
 
             let rest = trimmed.strip_prefix("group").unwrap().trim();
             if let Some(end) = rest.find(" do") {
-                current_group = Some(rest[..end].trim().to_string());
+                let group_name = rest[..end].trim();
+                let clean_group = group_name.strip_prefix(':').unwrap_or(group_name);
+                current_group = Some(clean_group.to_string());
             } else {
                 current_group = Some(rest.trim_end_matches(':').to_string());
             }
         } else if current_group.is_some() {
-            if trimmed.starts_with("gem ")
-                || trimmed.starts_with("gem'")
-                || trimmed.starts_with("gem\"")
-            {
+            if trimmed.starts_with("gem ") || trimmed.starts_with("gem'") || trimmed.starts_with("gem\"") {
                 if let Some(dep) = parse_gem_line_with_group(trimmed, current_group.as_deref()) {
                     current_gems.push(dep);
                 }
@@ -99,18 +117,11 @@ fn parse_groups(content: &str) -> Vec<GemGroup> {
 
     if let Some(name) = current_group {
         if !current_gems.is_empty() {
-            groups.push(GemGroup {
-                name,
-                gems: current_gems,
-            });
+            groups.push(GemGroup { name, gems: current_gems });
         }
     }
 
     groups
-}
-
-fn parse_gem_line(line: &str) -> Option<Dependency> {
-    parse_gem_line_with_group(line, None)
 }
 
 fn parse_gem_line_with_group(line: &str, group: Option<&str>) -> Option<Dependency> {
@@ -118,13 +129,13 @@ fn parse_gem_line_with_group(line: &str, group: Option<&str>) -> Option<Dependen
 
     let (name, rest) = if let Some(stripped) = content.strip_prefix('\'') {
         if let Some(end) = stripped.find('\'') {
-            (&content[1..end], &content[end + 1..])
+            (&content[1..end + 1], &content[end + 2..])
         } else {
             return None;
         }
     } else if let Some(stripped) = content.strip_prefix('"') {
         if let Some(end) = stripped.find('"') {
-            (&content[1..end], &content[end + 1..])
+            (&content[1..end + 1], &content[end + 2..])
         } else {
             return None;
         }
@@ -185,12 +196,7 @@ fn parse_version_from_rest(rest: &str) -> Option<GemVersion> {
     None
 }
 
-pub fn add_gem(
-    path: &PathBuf,
-    name: &str,
-    version: Option<&str>,
-    group: Option<&str>,
-) -> PackResult<()> {
+pub fn add_gem(path: &PathBuf, name: &str, version: Option<&str>, group: Option<&str>) -> PackResult<()> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
 
@@ -202,16 +208,16 @@ pub fn add_gem(
         }
     } else {
         if let Some(g) = group {
-            format!("gem \"{}\"  # {}", name, g)
+            format!("gem '{}'  # {}", name, g)
         } else {
-            format!("gem \"{}\"", name)
+            format!("gem '{}'", name)
         }
     };
 
-    let new_content = if content.trim().ends_with('\n') {
-        format!("{}{}\n", content, gem_line)
+    let new_content = if content.ends_with('\n') {
+        format!("{}{}", content, gem_line)
     } else {
-        format!("{}\n{}\n", content, gem_line)
+        format!("{}\n{}", content, gem_line)
     };
 
     std::fs::write(path, new_content)
@@ -247,4 +253,124 @@ pub fn remove_gem(path: &PathBuf, name: &str) -> PackResult<bool> {
     }
 
     Ok(removed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_simple_gems() {
+        let content = r#"
+source 'https://rubygems.org'
+
+gem 'rake'
+gem 'rspec'
+"#;
+        let deps = parse_gemfile(content).unwrap();
+        assert_eq!(deps.len(), 2);
+        assert_eq!(deps[0].name.0, "rake");
+        assert_eq!(deps[1].name.0, "rspec");
+    }
+
+    #[test]
+    fn test_parse_gems_with_version() {
+        let content = r#"
+gem 'rails', '~> 7.1.0'
+gem 'puma'
+"#;
+        let deps = parse_gemfile(content).unwrap();
+        assert_eq!(deps.len(), 2);
+        assert_eq!(deps[0].name.0, "rails");
+        assert_eq!(deps[0].version.as_ref().unwrap().0, "~> 7.1.0");
+        assert_eq!(deps[1].name.0, "puma");
+    }
+
+    #[test]
+    fn test_parse_double_quoted_gems() {
+        let content = r#"
+gem "rake"
+gem "rspec", "~> 3.12"
+"#;
+        let deps = parse_gemfile(content).unwrap();
+        assert_eq!(deps.len(), 2);
+        assert_eq!(deps[0].name.0, "rake");
+        assert_eq!(deps[1].name.0, "rspec");
+        assert_eq!(deps[1].version.as_ref().unwrap().0, "~> 3.12");
+    }
+
+    #[test]
+    fn test_parse_groups() {
+        let content = r#"
+source 'https://rubygems.org'
+
+gem 'rake'
+
+group :test do
+  gem 'rspec'
+  gem 'factory_bot'
+end
+"#;
+        let deps = parse_gemfile(content).unwrap();
+        assert_eq!(deps.len(), 3);
+
+        let test_gems: Vec<_> = deps.iter().filter(|d| d.group.as_deref() == Some("test")).collect();
+        assert_eq!(test_gems.len(), 2);
+    }
+
+    #[test]
+    fn test_add_gem() {
+        let temp_dir = std::env::temp_dir();
+        let gemfile_path = temp_dir.join("test_add_gem_Gemfile");
+        std::fs::write(&gemfile_path, "gem 'rake'\n").unwrap();
+
+        add_gem(&gemfile_path, "rspec", None, None).unwrap();
+
+        let content = std::fs::read_to_string(&gemfile_path).unwrap();
+        assert!(content.contains("gem 'rspec'"));
+
+        std::fs::remove_file(&gemfile_path).ok();
+    }
+
+    #[test]
+    fn test_add_gem_with_version() {
+        let temp_dir = std::env::temp_dir();
+        let gemfile_path = temp_dir.join("test_add_version_Gemfile");
+        std::fs::write(&gemfile_path, "gem 'rake'\n").unwrap();
+
+        add_gem(&gemfile_path, "rails", Some("7.1.0"), None).unwrap();
+
+        let content = std::fs::read_to_string(&gemfile_path).unwrap();
+        assert!(content.contains("gem \"rails\", \"~> 7.1.0\""));
+
+        std::fs::remove_file(&gemfile_path).ok();
+    }
+
+    #[test]
+    fn test_remove_gem() {
+        let temp_dir = std::env::temp_dir();
+        let gemfile_path = temp_dir.join("test_remove_gem_Gemfile");
+        std::fs::write(&gemfile_path, "gem 'rake'\ngem 'rspec'\n").unwrap();
+
+        let removed = remove_gem(&gemfile_path, "rake").unwrap();
+        assert!(removed);
+
+        let content = std::fs::read_to_string(&gemfile_path).unwrap();
+        assert!(!content.contains("rake"));
+        assert!(content.contains("rspec"));
+
+        std::fs::remove_file(&gemfile_path).ok();
+    }
+
+    #[test]
+    fn test_remove_gem_not_found() {
+        let temp_dir = std::env::temp_dir();
+        let gemfile_path = temp_dir.join("test_remove_missing_Gemfile");
+        std::fs::write(&gemfile_path, "gem 'rake'\n").unwrap();
+
+        let removed = remove_gem(&gemfile_path, "nonexistent").unwrap();
+        assert!(!removed);
+
+        std::fs::remove_file(&gemfile_path).ok();
+    }
 }
