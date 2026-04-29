@@ -1,276 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pack — Blazingly Fast Ruby Package Manager</title>
-    <meta name="description" content="Pack is a blazingly fast Ruby package manager written in Rust. Sub-second dependency resolution, native gem installation, and first-class Rails support.">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23ff6b6b'/><stop offset='100%25' stop-color='%23ee5a24'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-family='system-ui' font-size='50' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-:root{--bg:#0a0a0f;--bg-subtle:#12121a;--bg-muted:#1a1a25;--bg-elevated:#222230;--fg:#f0f0f5;--fg-secondary:#a0a0b0;--fg-muted:#606070;--border:#2a2a3a;--border-hover:#3a3a4a;--accent:#ff6b6b;--accent-dim:#cc5555;--accent-fg:#ffffff;--green:#00cc88;--amber:#ffb224;--red:#ff4444;--ruby:#cc3424;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-mono:'JetBrains Mono','SF Mono',monospace;--text-xs:0.75rem;--text-sm:0.8125rem;--text-base:0.875rem;--text-lg:1rem;--text-xl:1.125rem;--text-2xl:1.5rem;--text-3xl:2rem;--text-4xl:2.5rem;--text-5xl:3.5rem;--text-6xl:4.5rem;--sp-1:0.25rem;--sp-2:0.5rem;--sp-3:0.75rem;--sp-4:1rem;--sp-5:1.25rem;--sp-6:1.5rem;--sp-8:2rem;--sp-10:2.5rem;--sp-12:3rem;--sp-16:4rem;--sp-20:5rem;--sp-24:6rem;--sp-32:8rem;--max-w:1100px;--max-w-sm:720px;--nav-h:56px;--radius:8px;--radius-sm:6px;--radius-lg:12px;--radius-full:9999px;--ease:cubic-bezier(0.23,1,0.32,1);--duration:150ms}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
-body{font-family:var(--font-sans);font-size:var(--text-base);line-height:1.6;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-::selection{background:var(--accent);color:var(--bg)}
-a{color:inherit;text-decoration:none}
-a:hover{text-decoration:underline}
-code{font-family:var(--font-mono);font-size:0.88em;padding:2px 7px;background:var(--bg-muted);border:1px solid var(--border);border-radius:5px;color:var(--accent);font-weight:450;letter-spacing:0.01em;transition:all var(--duration) var(--ease)}
-code:hover{background:var(--bg-elevated);border-color:var(--border-hover)}
-img{max-width:100%;display:block}
-.wrap{max-width:var(--max-w);margin:0 auto;padding:0 var(--sp-6)}
-.wrap-sm{max-width:var(--max-w-sm);margin:0 auto;padding:0 var(--sp-6)}
-.container{max-width:var(--max-w);margin:0 auto};padding:0 var(--sp-6)}
-[data-reveal]{opacity:0;transform:translateY(12px);transition:opacity 0.5s var(--ease),transform 0.5s var(--ease)}
-[data-reveal].is-visible{opacity:1;transform:none}
-:focus-visible{outline:1px solid var(--fg-muted);outline-offset:2px}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
-@media(max-width:768px){.wrap,.wrap-sm,.container{padding:0 var(--sp-4)}}
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Pack is a Rust-powered Ruby package manager and Rails workflow CLI. Fast parsing, gem verbs, Packfile tasks, diagnostics, and Rails-first commands."><meta name="theme-color" content="#080808"><meta property="og:title" content="Pack — Ruby tooling with Bun energy"><meta property="og:description" content="Pack is a Rust-powered Ruby package manager and Rails workflow CLI. Fast parsing, gem verbs, Packfile tasks, diagnostics, and Rails-first commands."><title>Pack — Ruby tooling with Bun energy</title><link rel="icon" type="image/png" href="/pack/logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><style>:root{--bg: #080808;--bg-subtle: #101010;--bg-muted: #161616;--bg-elevated: #1f1a1c;--fg: #f5f2f3;--fg-secondary: #bbb1b5;--fg-muted: #72656a;--border: #292123;--border-hover: #3a2d31;--accent: #ab1b33;--accent-bright: #d62c49;--accent-fg: #fff7f8;--green: #3fb950;--amber: #e8b23b;--red: #ef5f6b;--ruby: #ab1b33;--gem: #d62c49;--rails: #d30001;--font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;--font-mono: "JetBrains Mono", "SF Mono", monospace;--text-xs: .75rem;--text-sm: .8125rem;--text-base: .9375rem;--text-lg: 1.0625rem;--text-xl: 1.1875rem;--text-2xl: 1.625rem;--text-3xl: 2.25rem;--text-4xl: 3rem;--text-5xl: 4.25rem;--text-6xl: 5rem;--sp-1: .25rem;--sp-2: .5rem;--sp-3: .75rem;--sp-4: 1rem;--sp-5: 1.25rem;--sp-6: 1.5rem;--sp-8: 2rem;--sp-10: 2.5rem;--sp-12: 3rem;--sp-16: 4rem;--sp-20: 5rem;--sp-24: 6rem;--sp-32: 8rem;--max-w: 1120px;--max-w-sm: 760px;--nav-h: 56px;--radius: 8px;--radius-sm: 6px;--radius-lg: 14px;--radius-full: 9999px;--ease: cubic-bezier(.23, 1, .32, 1);--duration: .15s}*,*:before,*:after{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}body{font-family:var(--font-sans);font-size:var(--text-base);line-height:1.6;color:var(--fg);background:radial-gradient(circle at top,rgba(171,27,51,.12),transparent 24%),linear-gradient(180deg,#080808,#0b090a);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}::selection{background:var(--accent);color:var(--accent-fg)}a{color:inherit;text-decoration:none}code{font-family:var(--font-mono);font-size:.88em;padding:2px 7px;background:var(--bg-muted);border:1px solid var(--border);border-radius:5px;color:#ffdbe1;font-weight:500}img{max-width:100%;display:block}.wrap{max-width:var(--max-w);margin:0 auto;padding:0 var(--sp-6)}.wrap-sm{max-width:var(--max-w-sm);margin:0 auto;padding:0 var(--sp-6)}[data-reveal]{opacity:0;transform:translateY(12px);transition:opacity .5s var(--ease),transform .5s var(--ease)}[data-reveal].is-visible{opacity:1;transform:none}[data-stagger]>*{opacity:0;transform:translateY(8px);transition:opacity .4s var(--ease),transform .4s var(--ease)}[data-stagger].is-visible>*{opacity:1;transform:none}[data-stagger].is-visible>:nth-child(1){transition-delay:0ms}[data-stagger].is-visible>:nth-child(2){transition-delay:60ms}[data-stagger].is-visible>:nth-child(3){transition-delay:.12s}[data-stagger].is-visible>:nth-child(4){transition-delay:.18s}[data-stagger].is-visible>:nth-child(5){transition-delay:.24s}[data-stagger].is-visible>:nth-child(6){transition-delay:.3s}[data-stagger].is-visible>:nth-child(7){transition-delay:.36s}[data-stagger].is-visible>:nth-child(8){transition-delay:.42s}[data-stagger].is-visible>:nth-child(9){transition-delay:.48s}:focus-visible{outline:1px solid var(--accent-bright);outline-offset:2px}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}@media(max-width:768px){.wrap,.wrap-sm{padding:0 var(--sp-4)}}
+</style>
+<link rel="stylesheet" href="/pack/_astro/index@_@astro.C1WN6lmW.css"></head> <body>  <header class="nav" x-data="{ open: false }" data-astro-cid-pphcmtgs> <div class="wrap nav-inner" data-astro-cid-pphcmtgs> <a href="/pack/" class="nav-brand" aria-label="Pack Home" data-astro-cid-pphcmtgs> <img src="/pack/logo.png" alt="Pack" class="nav-logo" width="36" height="36" data-astro-cid-pphcmtgs> <span class="nav-wordmark" data-astro-cid-pphcmtgs>Pack</span> </a> <nav class="nav-links" :class="{ 'is-open': open }" data-astro-cid-pphcmtgs> <a href="#features" data-astro-cid-pphcmtgs>Features</a> <a href="#benchmarks" data-astro-cid-pphcmtgs>Performance</a> <a href="/pack/docs/" data-astro-cid-pphcmtgs>Docs</a> <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noopener" data-astro-cid-pphcmtgs>GitHub</a> </nav> <div class="nav-actions" data-astro-cid-pphcmtgs> <a href="/pack/docs/getting-started" class="nav-cta" data-astro-cid-pphcmtgs>Get Started</a> <button class="nav-burger" @click="open = !open" :aria-expanded="open" aria-label="Menu" data-astro-cid-pphcmtgs> <span data-astro-cid-pphcmtgs></span> <span data-astro-cid-pphcmtgs></span> </button> </div> </div> </header> <section class="hero" data-astro-cid-7vszemnk> <div class="wrap hero-inner" data-astro-cid-7vszemnk> <p class="hero-tag" data-reveal x-data="{ copied: false }" data-astro-cid-7vszemnk> <span class="hero-dot" data-astro-cid-7vszemnk></span> <code data-astro-cid-7vszemnk>gem install pack-rb</code> <button class="hero-copy" @click="navigator.clipboard.writeText('gem install pack-rb').then(() => { copied = true; setTimeout(() => copied = false, 2000); })" aria-label="Copy install command" data-astro-cid-7vszemnk> <svg x-show="!copied" class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-7vszemnk> <rect x="9" y="9" width="13" height="13" rx="2" ry="2" data-astro-cid-7vszemnk></rect> <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" data-astro-cid-7vszemnk></path> </svg> <svg x-show="copied" class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-7vszemnk> <polyline points="20 6 9 17 4 12" data-astro-cid-7vszemnk></polyline> </svg> </button> </p> <h1 class="hero-h" data-reveal data-astro-cid-7vszemnk>
+Bun energy for Ruby.<br data-astro-cid-7vszemnk><span class="gradient-text" data-astro-cid-7vszemnk>Built for Rails reality.</span> </h1> <p class="hero-sub" data-reveal data-astro-cid-7vszemnk>
+Pack is a Rust-powered CLI for Ruby developers who want the `gem`, Bundler,
+      and Rails workflow to feel modern again.
+</p> <div class="hero-actions" data-reveal data-astro-cid-7vszemnk> <a href="/pack/docs/getting-started" class="btn-solid" data-astro-cid-7vszemnk>Get Started</a> <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noopener" class="btn-ghost" data-astro-cid-7vszemnk>GitHub</a> </div> <div class="hero-bench" data-reveal data-astro-cid-7vszemnk> <div class="bench-row" data-astro-cid-7vszemnk> <span class="bench-label" data-astro-cid-7vszemnk>Bundler</span> <div class="bench-track" data-astro-cid-7vszemnk><div class="bench-fill bench-slow" data-astro-cid-7vszemnk></div></div> <span class="bench-num" data-astro-cid-7vszemnk>850ms</span> </div> <div class="bench-row" data-astro-cid-7vszemnk> <span class="bench-label" data-astro-cid-7vszemnk>Pack</span> <div class="bench-track" data-astro-cid-7vszemnk><div class="bench-fill bench-fast" data-astro-cid-7vszemnk></div></div> <span class="bench-num is-highlight" data-astro-cid-7vszemnk>5µs</span> </div> </div> <p class="hero-subtitle" data-reveal data-astro-cid-7vszemnk>
+Drop-in framing: <strong data-astro-cid-7vszemnk>install</strong>, <strong data-astro-cid-7vszemnk>list</strong>, <strong data-astro-cid-7vszemnk>search</strong>, <strong data-astro-cid-7vszemnk>exec</strong>, <strong data-astro-cid-7vszemnk>doctor</strong>, Rails helpers, and binary <strong data-astro-cid-7vszemnk>pack.lock</strong> </p> </div> </section> <section class="sect" id="problem" data-astro-cid-hntrgfeo> <div class="wrap" data-astro-cid-hntrgfeo> <p class="sect-eyebrow" data-reveal data-astro-cid-hntrgfeo>The Problem</p> <h2 class="sect-heading" data-reveal data-astro-cid-hntrgfeo>Ruby package management still feels like startup tax.</h2> <p class="sect-body" data-reveal data-astro-cid-hntrgfeo>
+Rails teams pay for the same friction over and over:
+      cold CLI startup, Bundler overhead, container path mismatch, and dependency tooling that feels split across three eras.
+</p> <div class="symptoms" data-stagger data-astro-cid-hntrgfeo> <div class="symptom" data-astro-cid-hntrgfeo> <p class="symptom-name" data-astro-cid-hntrgfeo>Slow path to first feedback</p> <p class="symptom-desc" data-astro-cid-hntrgfeo>Parsing, bootstrapping, and basic gem tasks start with Ruby process cost before useful work begins.</p> </div> <div class="symptom" data-astro-cid-hntrgfeo> <p class="symptom-name" data-astro-cid-hntrgfeo>Rails workflow fragmentation</p> <p class="symptom-desc" data-astro-cid-hntrgfeo>`gem`, Bundler, project tasks, and Rails commands all feel related, but they do not live in one coherent CLI.</p> </div> <div class="symptom" data-astro-cid-hntrgfeo> <p class="symptom-name" data-astro-cid-hntrgfeo>CI and Docker churn</p> <p class="symptom-desc" data-astro-cid-hntrgfeo>Environment-specific paths and repeated install work keep slowing down container builds and deploy flows.</p> </div> <div class="symptom" data-astro-cid-hntrgfeo> <p class="symptom-name" data-astro-cid-hntrgfeo>Poor observability</p> <p class="symptom-desc" data-astro-cid-hntrgfeo>When dependencies drift or lockfiles get heavy, the default toolchain rarely explains the problem quickly.</p> </div> </div> </div> </section> <section class="sect" id="solution" data-astro-cid-dxyvz2fb> <div class="wrap" data-astro-cid-dxyvz2fb> <p class="sect-eyebrow" data-reveal data-astro-cid-dxyvz2fb>The Solution</p> <h2 class="sect-heading" data-reveal data-astro-cid-dxyvz2fb>One CLI for gem work, Bundler-adjacent flows, and Rails operators.</h2> <p class="sect-body" data-reveal data-astro-cid-dxyvz2fb>
+Pack keeps the commands Ruby developers already expect, but moves the hot path into Rust:
+      native gem registry integration, microsecond-scale parsing, task runners, diagnostics, and Rails-first shortcuts.
+</p> <div class="code-preview" data-reveal data-astro-cid-dxyvz2fb> <pre data-astro-cid-dxyvz2fb><code data-astro-cid-dxyvz2fb><span class="comment" data-astro-cid-dxyvz2fb># Use familiar verbs</span>
+$ pack install
+$ pack list rails
+$ pack search sidekiq
 
-nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,0.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-nav .container{display:flex;align-items:center;justify-content:space-between;height:var(--nav-h)}
-.logo{display:flex;align-items:center;gap:var(--sp-2);font-family:var(--font-mono);font-weight:600;font-size:var(--text-lg);color:var(--fg)}
-.logo-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);border-radius:var(--radius-sm);font-size:var(--text-sm);font-weight:700;color:#fff}
-.nav-links{display:flex;align-items:center;gap:var(--sp-6)}
-.nav-links a{font-size:var(--text-sm);color:var(--fg-secondary);transition:color var(--duration) var(--ease)}
-.nav-links a:hover{color:var(--fg);text-decoration:none}
-.github-link{background:var(--bg-muted);border:1px solid var(--border);padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-full);font-size:var(--text-xs)!important;font-weight:500!important}
-.github-link:hover{background:var(--bg-elevated)!important;border-color:var(--border-hover)!important}
+<span class="comment" data-astro-cid-dxyvz2fb># Add Pack to an existing app</span>
+$ pack init
+$ pack doctor
+$ pack lock
 
-.hero{position:relative;padding:var(--sp-32) 0;overflow:hidden;text-align:center}
-.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(255,107,107,0.15),transparent);pointer-events:none}
-.hero .container{position:relative;z-index:1}
-.hero-badge{display:inline-block;padding:var(--sp-1) var(--sp-4);background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius-full);font-size:var(--text-xs);font-family:var(--font-mono);color:var(--fg-secondary);margin-bottom:var(--sp-6)}
-.hero h1{font-size:var(--text-6xl);font-weight:800;line-height:1.1;letter-spacing:-0.03em;margin-bottom:var(--sp-6)}
-.gradient-text{background:linear-gradient(135deg,#ff6b6b,#ee5a24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-subtitle{font-size:var(--text-xl);color:var(--fg-secondary);max-width:600px;margin:0 auto var(--sp-8);line-height:1.7}
-.hero-actions{display:flex;gap:var(--sp-4);justify-content:center;margin-bottom:var(--sp-10)}
-.btn{display:inline-flex;align-items:center;padding:var(--sp-3) var(--sp-6);border-radius:var(--radius);font-family:var(--font-mono);font-size:var(--text-sm);font-weight:500;transition:all var(--duration) var(--ease);cursor:pointer}
-.btn-primary{background:var(--accent);color:var(--accent-fg)}
-.btn-primary:hover{background:var(--accent-dim);text-decoration:none}
-.btn-secondary{background:var(--bg-muted);color:var(--fg);border:1px solid var(--border)}
-.btn-secondary:hover{background:var(--bg-elevated);border-color:var(--border-hover);text-decoration:none}
-.hero-code{background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-4) var(--sp-6);display:inline-block}
-.hero-code code{background:none;border:none;padding:0;color:var(--fg)}
-
-.features,.benchmarks,.install,.commands{padding:var(--sp-20) 0}
-.features h2,.benchmarks h2,.install h2,.commands h2{font-size:var(--text-3xl);font-weight:700;letter-spacing:-0.02em;margin-bottom:var(--sp-12);text-align:center}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-6)}
-.feature{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-8);transition:all var(--duration) var(--ease)}
-.feature:hover{border-color:var(--border-hover);transform:translateY(-2px)}
-.feature-icon{font-size:var(--text-3xl);margin-bottom:var(--sp-4)}
-.feature h3{font-size:var(--text-lg);font-weight:600;margin-bottom:var(--sp-2)}
-.feature p{font-size:var(--text-sm);color:var(--fg-secondary);line-height:1.7}
-
-.benchmarks{background:var(--bg-subtle)}
-.benchmark-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4)}
-.benchmark-card{background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-6);text-align:center}
-.benchmark-card.highlight{border-color:var(--accent);background:linear-gradient(135deg,rgba(255,107,107,0.1),transparent)}
-.benchmark-label{font-size:var(--text-xs);color:var(--fg-muted);margin-bottom:var(--sp-2);font-family:var(--font-mono)}
-.benchmark-value{font-size:var(--text-3xl);font-weight:700;color:var(--accent);font-family:var(--font-mono)}
-.benchmark-compare{font-size:var(--text-xs);color:var(--fg-muted);margin:var(--sp-2) 0}
-.benchmark-badge{display:inline-block;padding:var(--sp-1) var(--sp-3);background:rgba(255,107,107,0.1);border-radius:var(--radius-full);font-size:var(--text-xs);color:var(--accent);font-family:var(--font-mono)}
-
-.install-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-6)}
-.install-step{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-8);text-align:center}
-.step-number{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--accent);color:#fff;border-radius:var(--radius-full);font-weight:700;font-size:var(--text-lg);margin-bottom:var(--sp-4)}
-.install-step h3{font-size:var(--text-lg);font-weight:600;margin-bottom:var(--sp-4)}
-.install-step pre{background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-4);margin-top:var(--sp-3)}
-
-.commands-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4)}
-.command-card{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-5);display:flex;flex-direction:column;gap:var(--sp-2);transition:all var(--duration) var(--ease)}
-.command-card:hover{border-color:var(--border-hover)}
-.command-card code{font-size:var(--text-sm)}
-.command-card span{font-size:var(--text-xs);color:var(--fg-muted)}
-
-footer{background:var(--bg-subtle);border-top:1px solid var(--border);padding:var(--sp-12) 0;text-align:center}
-footer p{font-size:var(--text-sm);color:var(--fg-muted);margin-bottom:var(--sp-2)}
-.footer-links a{color:var(--fg-secondary);margin:0 var(--sp-2)}
-.footer-links a:hover{color:var(--fg)}
-
-@media(max-width:1024px){.features-grid{grid-template-columns:repeat(2,1fr)};benchmark-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:768px){.hero h1{font-size:var(--text-4xl)};hero-subtitle{font-size:var(--text-lg)};nav .nav-links{gap:var(--sp-4)};features-grid,install-grid{grid-template-columns:1fr};benchmark-grid{grid-template-columns:repeat(2,1fr)};commands-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:480px){.hero h1{font-size:var(--text-3xl)};hero-actions{flex-direction:column;align-items:center};nav .nav-links a:not(.github-link){display:none}}
-    </style>
-</head>
-<body>
-    <nav>
-        <div class="container">
-            <a href="#" class="logo">
-                <span class="logo-icon">P</span>
-                <span>Pack</span>
-            </a>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#benchmarks">Benchmarks</a>
-                <a href="#install">Install</a>
-                <a href="#docs">Docs</a>
-                <a href="https://github.com/Blu3Ph4ntom/pack" class="github-link">GitHub</a>
-            </div>
-        </div>
-    </nav>
-
-    <header class="hero">
-        <div class="hero-bg"></div>
-        <div class="container">
-            <div class="hero-badge">Rust-Powered • 100x Faster</div>
-            <h1>Blazingly Fast<br><span class="gradient-text">Ruby Package Manager</span></h1>
-            <p class="hero-subtitle">Pack is an ultra-fast Ruby package manager written in Rust. Sub-second dependency resolution, native gem installation, and first-class Rails support. No Ruby required.</p>
-            <div class="hero-actions">
-                <a href="#install" class="btn btn-primary">Get Started</a>
-                <a href="#benchmarks" class="btn btn-secondary">View Benchmarks</a>
-            </div>
-            <div class="hero-code">
-                <code>curl -fsSL https://pack.dev/install.sh | bash</code>
-            </div>
-        </div>
-    </header>
-
-    <section id="features" class="features">
-        <div class="container">
-            <h2>Why Pack?</h2>
-            <div class="features-grid">
-                <div class="feature">
-                    <div class="feature-icon">⚡</div>
-                    <h3>100x Faster</h3>
-                    <p>Lockfile parsing is 33,000x faster than Bundler. Native Rust parsing means no Ruby interpreter startup overhead.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔧</div>
-                    <h3>No Ruby Required</h3>
-                    <p>Works on systems without Ruby installed. Perfect for Docker containers and CI/CD pipelines.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🚂</div>
-                    <h3>Rails First</h3>
-                    <p>First-class Rails support with commands like pack server, pack console, pack test, and pack db.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📦</div>
-                    <h3>Binary pack.lock</h3>
-                    <p>MessagePack-based lockfile format for near-instant parsing. 100x faster than Gemfile.lock.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔌</div>
-                    <h3>Plugin System</h3>
-                    <p>Extend Pack with plugins. Shell scripts, binaries, or Docker containers — any executable works.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📦</div>
-                    <h3>Offline Mode</h3>
-                    <p>Cached gems work without network. Set PACK_OFFLINE=1 and keep building.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="benchmarks" class="benchmarks">
-        <div class="container">
-            <h2>Performance</h2>
-            <div class="benchmark-grid">
-                <div class="benchmark-card">
-                    <div class="benchmark-label">Parse Gemfile (100 deps)</div>
-                    <div class="benchmark-value">5.4µs</div>
-                    <div class="benchmark-compare">vs 850ms Bundler</div>
-                    <div class="benchmark-badge">157,000x faster</div>
-                </div>
-                <div class="benchmark-card">
-                    <div class="benchmark-label">Parse Lockfile (50 gems)</div>
-                    <div class="benchmark-value">15µs</div>
-                    <div class="benchmark-compare">vs 500ms Bundler</div>
-                    <div class="benchmark-badge">33,000x faster</div>
-                </div>
-                <div class="benchmark-card">
-                    <div class="benchmark-label">Parse Lockfile (200 gems)</div>
-                    <div class="benchmark-value">41µs</div>
-                    <div class="benchmark-compare">vs 1200ms Bundler</div>
-                    <div class="benchmark-badge">29,000x faster</div>
-                </div>
-                <div class="benchmark-card highlight">
-                    <div class="benchmark-label">Startup Time</div>
-                    <div class="benchmark-value">1ms</div>
-                    <div class="benchmark-compare">vs 500ms Bundler</div>
-                    <div class="benchmark-badge">500x faster</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="install" class="install">
-        <div class="container">
-            <h2>Get Started</h2>
-            <div class="install-grid">
-                <div class="install-step">
-                    <div class="step-number">1</div>
-                    <h3>Install Pack</h3>
-                    <pre><code>curl -fsSL https://pack.dev/install.sh | bash</code></pre>
-                </div>
-                <div class="install-step">
-                    <div class="step-number">2</div>
-                    <h3>Initialize Project</h3>
-                    <pre><code>cd my-rails-app
-pack init</code></pre>
-                </div>
-                <div class="install-step">
-                    <div class="step-number">3</div>
-                    <h3>Install Gems</h3>
-                    <pre><code>pack install</code></pre>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="docs" class="commands">
-        <div class="container">
-            <h2>Commands</h2>
-            <div class="commands-grid">
-                <div class="command-card">
-                    <code>pack install</code>
-                    <span>Install gems from Gemfile</span>
-                </div>
-                <div class="command-card">
-                    <code>pack add rails</code>
-                    <span>Add gem to Gemfile</span>
-                </div>
-                <div class="command-card">
-                    <code>pack remove rails</code>
-                    <span>Remove gem from Gemfile</span>
-                </div>
-                <div class="command-card">
-                    <code>pack update</code>
-                    <span>Update gem versions</span>
-                </div>
-                <div class="command-card">
-                    <code>pack why rails</code>
-                    <span>Explain dependency chain</span>
-                </div>
-                <div class="command-card">
-                    <code>pack gem list</code>
-                    <span>List installed gems</span>
-                </div>
-                <div class="command-card">
-                    <code>pack server</code>
-                    <span>Start Rails server</span>
-                </div>
-                <div class="command-card">
-                    <code>pack console</code>
-                    <span>Open Rails console</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <p>Pack is MIT licensed. Built with Rust.</p>
-            <p class="footer-links">
-                <a href="https://github.com/Blu3Ph4ntom/pack">GitHub</a> •
-                <a href="#">Documentation</a> •
-                <a href="#">Changelog</a>
-            </p>
-        </div>
-    </footer>
-</body>
-</html>
+<span class="comment" data-astro-cid-dxyvz2fb># Stay inside one Rails-shaped workflow</span>
+$ pack server
+$ pack console
+$ pack db migrate</code></pre> </div> </div> </section> <section class="sect" id="features" data-astro-cid-zeugw26h> <div class="wrap" data-astro-cid-zeugw26h> <p class="sect-eyebrow" data-reveal data-astro-cid-zeugw26h>Features</p> <h2 class="sect-heading" data-reveal data-astro-cid-zeugw26h>Everything you need.<br data-astro-cid-zeugw26h>Nothing you don't.</h2> <div class="feats" data-stagger data-astro-cid-zeugw26h> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Fast parse path</p> <p class="feat-desc" data-astro-cid-zeugw26h>Criterion benches exist in-repo for Gemfile and lockfile parsing, dependency-path lookup, and `why` traversal.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Native gem verbs</p> <p class="feat-desc" data-astro-cid-zeugw26h>`pack install <gem data-astro-cid-zeugw26h>`, `pack list`, `pack search`, `pack info`, `pack env`, `pack cleanup`, and `pack outdated` map cleanly to Ruby developers’ expectations.</gem></p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Binary `pack.lock`</p> <p class="feat-desc" data-astro-cid-zeugw26h>MessagePack-backed lockfile data for fast reads and a clearer “Rust path” story beside the traditional `Gemfile.lock` flow.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Rails first</p> <p class="feat-desc" data-astro-cid-zeugw26h>Shortcuts like <code data-astro-cid-zeugw26h>pack server</code>, <code data-astro-cid-zeugw26h>pack console</code>, <code data-astro-cid-zeugw26h>pack test</code>, <code data-astro-cid-zeugw26h>pack db</code>, <code data-astro-cid-zeugw26h>pack assets</code>, and <code data-astro-cid-zeugw26h>pack docker</code>.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Project tasks</p> <p class="feat-desc" data-astro-cid-zeugw26h>`Packfile` support gives teams a single runner for dev, test, deploy, and maintenance commands.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Plugin System</p> <p class="feat-desc" data-astro-cid-zeugw26h>Local plugins can be shell scripts or executables with manifests, giving teams an extension path without rebuilding the core CLI.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Diagnostic mode</p> <p class="feat-desc" data-astro-cid-zeugw26h><code data-astro-cid-zeugw26h>pack doctor</code> inspects Gemfile presence, Ruby environment, cache paths, installed gems, and Rails-specific issues.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Drop-in posture</p> <p class="feat-desc" data-astro-cid-zeugw26h>The CLI is explicitly positioned as the faster front door for common `gem` and Bundler-adjacent flows rather than a totally foreign model.</p> </div> <div class="feat" data-astro-cid-zeugw26h> <p class="feat-name" data-astro-cid-zeugw26h>Rails-company pitch</p> <p class="feat-desc" data-astro-cid-zeugw26h>Faster feedback loops, better container ergonomics, and one CLI surface are the story that matters to teams, not only benchmark screenshots.</p> </div> </div> </div> </section> <section class="sect" id="use-cases" data-astro-cid-mujamu2r> <div class="wrap" data-astro-cid-mujamu2r> <p class="sect-eyebrow" data-reveal data-astro-cid-mujamu2r>Who It Is For</p> <h2 class="sect-heading" data-reveal data-astro-cid-mujamu2r>Two buyer stories matter: the Rails developer and the Rails team.</h2> <div class="cases" data-stagger data-astro-cid-mujamu2r> <article class="case" data-astro-cid-mujamu2r> <p class="case-kicker" data-astro-cid-mujamu2r>Solo Rails dev</p> <h3 class="case-title" data-astro-cid-mujamu2r>Fewer tool boundaries, faster feedback.</h3> <p class="case-copy" data-astro-cid-mujamu2r>Install gems, inspect dependencies, run tasks, and jump into Rails commands without bouncing between unrelated CLIs.</p> </article> <article class="case" data-astro-cid-mujamu2r> <p class="case-kicker" data-astro-cid-mujamu2r>Platform or app team</p> <h3 class="case-title" data-astro-cid-mujamu2r>A better default story for Docker and CI.</h3> <p class="case-copy" data-astro-cid-mujamu2r>Use a single binary-oriented path for diagnostics, cache strategy, task orchestration, and a cleaner packaging story around dependency workflows.</p> </article> <article class="case" data-astro-cid-mujamu2r> <p class="case-kicker" data-astro-cid-mujamu2r>Ruby-curious adopters</p> <h3 class="case-title" data-astro-cid-mujamu2r>The “Bun for Ruby” mental model.</h3> <p class="case-copy" data-astro-cid-mujamu2r>You keep familiar verbs, but the product promise is modern startup time, aggressive parsing performance, and a CLI that feels intentionally designed.</p> </article> </div> </div> </section> <section class="sect" id="benchmarks" data-astro-cid-3t4oqgqh> <div class="wrap" data-astro-cid-3t4oqgqh> <p class="sect-eyebrow" data-reveal data-astro-cid-3t4oqgqh>Performance</p> <h2 class="sect-heading" data-reveal data-astro-cid-3t4oqgqh>Benchmarks exist. The site now treats them as evidence, not wallpaper.</h2> <div class="bench-table" data-stagger data-astro-cid-3t4oqgqh> <div class="bench-row bench-row--head" data-astro-cid-3t4oqgqh> <span data-astro-cid-3t4oqgqh>Operation</span> <span data-astro-cid-3t4oqgqh>Bundler</span> <span data-astro-cid-3t4oqgqh>Pack</span> <span data-astro-cid-3t4oqgqh>Speedup</span> </div> <div class="bench-row" data-astro-cid-3t4oqgqh> <span class="bench-op" data-astro-cid-3t4oqgqh>Parse Gemfile (100 deps)</span> <span class="bench-val bench-slow" data-astro-cid-3t4oqgqh>850ms</span> <span class="bench-val bench-fast" data-astro-cid-3t4oqgqh>5µs</span> <span class="bench-val accent" data-astro-cid-3t4oqgqh>157,000x</span> </div> <div class="bench-row" data-astro-cid-3t4oqgqh> <span class="bench-op" data-astro-cid-3t4oqgqh>Parse Gemfile.lock (50 gems)</span> <span class="bench-val bench-slow" data-astro-cid-3t4oqgqh>500ms</span> <span class="bench-val bench-fast" data-astro-cid-3t4oqgqh>15µs</span> <span class="bench-val accent" data-astro-cid-3t4oqgqh>33,000x</span> </div> <div class="bench-row" data-astro-cid-3t4oqgqh> <span class="bench-op" data-astro-cid-3t4oqgqh>Parse Gemfile.lock (200 gems)</span> <span class="bench-val bench-slow" data-astro-cid-3t4oqgqh>1200ms</span> <span class="bench-val bench-fast" data-astro-cid-3t4oqgqh>41µs</span> <span class="bench-val accent" data-astro-cid-3t4oqgqh>29,000x</span> </div> <div class="bench-row" data-astro-cid-3t4oqgqh> <span class="bench-op" data-astro-cid-3t4oqgqh>Startup time</span> <span class="bench-val bench-slow" data-astro-cid-3t4oqgqh>500ms</span> <span class="bench-val bench-fast" data-astro-cid-3t4oqgqh>1ms</span> <span class="bench-val accent" data-astro-cid-3t4oqgqh>500x</span> </div> <div class="bench-row" data-astro-cid-3t4oqgqh> <span class="bench-op" data-astro-cid-3t4oqgqh>Gem list command</span> <span class="bench-val bench-slow" data-astro-cid-3t4oqgqh>200ms</span> <span class="bench-val bench-fast" data-astro-cid-3t4oqgqh>1ms</span> <span class="bench-val accent" data-astro-cid-3t4oqgqh>200x</span> </div> </div> <p class="bench-note" data-reveal data-astro-cid-3t4oqgqh>
+Source surface: Criterion benches in <code data-astro-cid-3t4oqgqh>crates/pack-gemfile/benches</code> plus shell comparison scripts in <code data-astro-cid-3t4oqgqh>benchmarks/</code>.
+      The marketing claim should stay attached to that evidence.
+</p> </div> </section> <section class="sect" data-astro-cid-mm73ds57> <div class="wrap" data-astro-cid-mm73ds57> <div class="cta-inner" data-reveal data-astro-cid-mm73ds57> <h2 class="cta-heading" data-astro-cid-mm73ds57>Ready to speed up your Ruby workflow?</h2> <p class="cta-sub" data-astro-cid-mm73ds57>Start with the docs, verify the command surface, then decide whether Pack earns the “Bun for Ruby” label in your stack.</p> <div class="cta-actions" data-astro-cid-mm73ds57> <a href="/pack/docs/getting-started" class="btn-solid" data-astro-cid-mm73ds57>Get Started</a> <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noopener" class="btn-ghost" data-astro-cid-mm73ds57>View on GitHub</a> </div> </div> </div> </section> <footer class="footer" data-astro-cid-qa6fgxkw> <div class="wrap footer-inner" data-astro-cid-qa6fgxkw> <div class="footer-brand" data-astro-cid-qa6fgxkw> <a href="/pack/" class="footer-logo" data-astro-cid-qa6fgxkw> <img src="/pack/logo.png" alt="Pack" class="footer-logo-img" width="32" height="32" data-astro-cid-qa6fgxkw> <span data-astro-cid-qa6fgxkw>Pack</span> </a> <p class="footer-tagline" data-astro-cid-qa6fgxkw>Ruby package management and Rails workflows with a faster Rust hot path.</p> </div> <nav class="footer-nav" data-astro-cid-qa6fgxkw> <div class="footer-col" data-astro-cid-qa6fgxkw> <p class="footer-col-head" data-astro-cid-qa6fgxkw>Docs</p> <a href="/pack/docs/" data-astro-cid-qa6fgxkw>Introduction</a> <a href="/pack/docs/getting-started" data-astro-cid-qa6fgxkw>Getting Started</a> <a href="/pack/docs/commands" data-astro-cid-qa6fgxkw>Commands</a> <a href="/pack/docs/rails" data-astro-cid-qa6fgxkw>Rails Support</a> <a href="/pack/docs/benchmarks" data-astro-cid-qa6fgxkw>Benchmarks</a> </div> <div class="footer-col" data-astro-cid-qa6fgxkw> <p class="footer-col-head" data-astro-cid-qa6fgxkw>Project</p> <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noopener" data-astro-cid-qa6fgxkw>GitHub</a> <a href="https://crates.io/crates/pack" target="_blank" rel="noopener" data-astro-cid-qa6fgxkw>crates.io</a> <a href="https://github.com/Blu3Ph4ntom/pack/blob/main/LICENSE" target="_blank" rel="noopener" data-astro-cid-qa6fgxkw>MIT License</a> </div> <div class="footer-col" data-astro-cid-qa6fgxkw> <p class="footer-col-head" data-astro-cid-qa6fgxkw>Compare</p> <a href="/pack/docs/benchmarks" data-astro-cid-qa6fgxkw>Benchmarks</a> <a href="/pack/docs/commands#gem-compatible" data-astro-cid-qa6fgxkw>vs gem</a> <a href="/pack/docs/commands#bundler-adjacent" data-astro-cid-qa6fgxkw>vs Bundler</a> </div> </nav> </div> <div class="footer-bottom" data-astro-cid-qa6fgxkw> <div class="wrap footer-bottom-inner" data-astro-cid-qa6fgxkw> <span data-astro-cid-qa6fgxkw>© 2026 Blu3Ph4ntom · MIT License</span> <span data-astro-cid-qa6fgxkw>pack v0.1.0 · Rust-Powered</span> </div> </div> </footer>  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-visible') })
+      }, { threshold: 0.08 })
+      document.querySelectorAll('[data-reveal],[data-stagger]').forEach(el => io.observe(el))
+    })
+  </script> </body> </html>

@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "node ./node_modules/astro/bin/astro.mjs dev",
-    "build": "node ./node_modules/astro/bin/astro.mjs build",
+    "build:astro": "node ./node_modules/astro/bin/astro.mjs build",
+    "build": "npm run build:astro && node ./scripts/sync-dist.mjs",
     "preview": "node ./node_modules/astro/bin/astro.mjs preview"
   },
   "dependencies": {

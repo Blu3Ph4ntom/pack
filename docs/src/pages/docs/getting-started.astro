@@ -30,8 +30,14 @@ const headings = [
 
     <section id="install-pack">
       <h2 class="doc-h2">Install Pack</h2>
+      <pre class="doc-pre"><code>gem install pack-rb
+pack --help</code></pre>
+      <p class="doc-p">The intended user-facing install path is the RubyGems wrapper gem. It installs a <code>pack</code> launcher and downloads the matching release binary on first run.</p>
+      <Callout type="note">
+        <p><code>pack-rb</code> is the RubyGems package name because <code>pack</code> is already taken on RubyGems.org.</p>
+      </Callout>
       <pre class="doc-pre"><code>cargo install --path crates/pack-cli</code></pre>
-      <p class="doc-p">The current repository clearly supports installing from source. A binary-release and RubyGems packaging story can sit on top of that, but source install is the reliable baseline today.</p>
+      <p class="doc-p">Source install still works and remains the simplest contributor path.</p>
     </section>
 
     <section id="existing-project">

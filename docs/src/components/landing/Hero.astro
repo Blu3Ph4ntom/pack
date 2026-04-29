@@ -6,10 +6,10 @@ import { withBase } from '../../utils/base'
   <div class="wrap hero-inner">
     <p class="hero-tag" data-reveal x-data="{ copied: false }">
       <span class="hero-dot"></span>
-      <code>cargo install pack</code>
+      <code>gem install pack-rb</code>
       <button
         class="hero-copy"
-        @click="navigator.clipboard.writeText('cargo install pack').then(() => { copied = true; setTimeout(() => copied = false, 2000); })"
+        @click="navigator.clipboard.writeText('gem install pack-rb').then(() => { copied = true; setTimeout(() => copied = false, 2000); })"
         aria-label="Copy install command"
       >
         <svg x-show="!copied" class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
