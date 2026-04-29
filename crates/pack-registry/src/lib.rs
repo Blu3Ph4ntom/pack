@@ -25,13 +25,7 @@ pub struct Registry {
 
 impl Registry {
     pub fn new() -> Self {
-        let cache_dir = std::env::var("PACK_CACHE_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| {
-                std::env::var("HOME")
-                    .map(|h| PathBuf::from(h).join(".cache").join("pack"))
-                    .unwrap_or_else(|_| PathBuf::from(".cache/pack"))
-            });
+        let cache_dir = Self::default_cache_dir();
 
         Self {
             client: reqwest::Client::builder()
@@ -44,6 +38,16 @@ impl Registry {
         }
     }
 
+    fn default_cache_dir() -> PathBuf {
+        std::env::var("PACK_CACHE_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                std::env::var("HOME")
+                    .map(|h| PathBuf::from(h).join(".cache").join("pack"))
+                    .unwrap_or_else(|_| PathBuf::from(".cache/pack"))
+            })
+    }
+
     pub fn with_cache_dir(cache_dir: PathBuf) -> Self {
         Self {
             client: reqwest::Client::builder()
@@ -54,6 +58,30 @@ impl Registry {
             base_url: "https://rubygems.org".to_string(),
             cache_dir,
         }
+    }
+
+    pub fn with_base_url(base_url: impl Into<String>) -> Self {
+        Self {
+            client: reqwest::Client::builder()
+                .user_agent("Pack/0.1.0")
+                .timeout(std::time::Duration::from_secs(30))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new()),
+            base_url: base_url.into(),
+            cache_dir: Self::default_cache_dir(),
+        }
+    }
+
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    pub fn cache_dir(&self) -> &PathBuf {
+        &self.cache_dir
+    }
+
+    pub fn set_cache_dir(&mut self, cache_dir: PathBuf) {
+        self.cache_dir = cache_dir;
     }
 
     /// Search for gems by name pattern
