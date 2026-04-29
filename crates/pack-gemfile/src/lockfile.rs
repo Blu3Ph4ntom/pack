@@ -12,9 +12,67 @@ pub struct Lockfile {
     pub top_level: Vec<GemName>,
 }
 
+impl Lockfile {
+    pub fn get_spec(&self, name: &GemName) -> Option<&GemSpec> {
+        self.specs.get(name)
+    }
+
+    pub fn has_gem(&self, name: &GemName) -> bool {
+        self.specs.contains_key(name)
+    }
+
+    pub fn gem_count(&self) -> usize {
+        self.specs.len()
+    }
+
+    pub fn top_level_gem_count(&self) -> usize {
+        self.top_level.len()
+    }
+
+    pub fn get_all_gem_names(&self) -> Vec<&GemName> {
+        self.specs.keys().collect()
+    }
+
+    pub fn find_gems_with_dep(&self, dep: &GemName) -> Vec<&GemName> {
+        self.specs
+            .iter()
+            .filter(|(_, spec)| spec.dependencies.contains(dep))
+            .map(|(name, _)| name)
+            .collect()
+    }
+}
+
 pub struct GemSpec {
     pub version: GemVersion,
     pub dependencies: Vec<GemName>,
+}
+
+impl GemSpec {
+    pub fn new(version: GemVersion) -> Self {
+        Self {
+            version,
+            dependencies: Vec::new(),
+        }
+    }
+
+    pub fn with_dep(mut self, dep: GemName) -> Self {
+        self.dependencies.push(dep);
+        self
+    }
+
+    pub fn add_dep(&mut self, dep: GemName) {
+        if !self.dependencies.contains(&dep) {
+            self.dependencies.push(dep);
+        }
+    }
+
+    pub fn has_dependency(&self, name: &GemName) -> bool {
+        self.dependencies.contains(name)
+    }
+
+    pub fn dep_count(&self) -> usize {
+        self.dependencies.len()
+    }
 }
 
 pub fn load_lockfile(path: &PathBuf) -> PackResult<Lockfile> {
