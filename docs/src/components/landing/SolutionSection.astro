@@ -5,25 +5,27 @@
   <div class="wrap">
 
     <p class="sect-eyebrow" data-reveal>The Solution</p>
-    <h2 class="sect-heading" data-reveal>Native gem management<br />without the overhead.</h2>
+    <h2 class="sect-heading" data-reveal>One CLI for gem work, Bundler-adjacent flows, and Rails operators.</h2>
     <p class="sect-body" data-reveal>
-      Pack talks directly to RubyGems.org. No Ruby interpreter, no Bundler.<br />
-      Just fast, parallel gem installation with sub-millisecond lockfile parsing.
+      Pack keeps the commands Ruby developers already expect, but moves the hot path into Rust:
+      native gem registry integration, microsecond-scale parsing, task runners, diagnostics, and Rails-first shortcuts.
     </p>
 
     <div class="code-preview" data-reveal>
-      <pre><code><span class="comment"># Install gems in seconds, not minutes</span>
+      <pre><code><span class="comment"># Use familiar verbs</span>
 $ pack install
-Installing 47 gems... <span class="success">done</span> <span class="muted">in 2.3s</span>
+$ pack list rails
+$ pack search sidekiq
 
-<span class="comment"># Parse lockfile instantly</span>
-$ time pack lock
-<span class="success">15µs</span>
+<span class="comment"># Add Pack to an existing app</span>
+$ pack init
+$ pack doctor
+$ pack lock
 
-<span class="comment"># Start Rails server immediately</span>
+<span class="comment"># Stay inside one Rails-shaped workflow</span>
 $ pack server
-<span class="muted">Pack v0.1.0 — Rails 8.0.0</span>
-<span class="success">Server running on http://localhost:3000</span></code></pre>
+$ pack console
+$ pack db migrate</code></pre>
     </div>
 
   </div>

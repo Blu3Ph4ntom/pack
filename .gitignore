@@ -3,3 +3,6 @@
 .DS_Store
 *.log
 /tmp/
+docs/node_modules/
+docs/dist/
+docs/.astro/

@@ -1,49 +1,41 @@
 :root {
-  /* Background */
-  --bg: #0a0a0f;
-  --bg-subtle: #12121a;
-  --bg-muted: #1a1a25;
-  --bg-elevated: #222230;
+  --bg: #080808;
+  --bg-subtle: #101010;
+  --bg-muted: #161616;
+  --bg-elevated: #1f1a1c;
 
-  /* Foreground */
-  --fg: #f0f0f5;
-  --fg-secondary: #a0a0b0;
-  --fg-muted: #606070;
+  --fg: #f5f2f3;
+  --fg-secondary: #bbb1b5;
+  --fg-muted: #72656a;
 
-  /* Border */
-  --border: #2a2a3a;
-  --border-hover: #3a3a4a;
+  --border: #292123;
+  --border-hover: #3a2d31;
 
-  /* Accent — Ruby/red theme for Pack */
-  --accent: #ff6b6b;
-  --accent-dim: #cc5555;
-  --accent-fg: #ffffff;
+  --accent: #ab1b33;
+  --accent-bright: #d62c49;
+  --accent-fg: #fff7f8;
 
-  /* Semantic */
-  --green: #00cc88;
-  --amber: #ffb224;
-  --red: #ff4444;
-  --ruby: #cc3424;
-  --gem: #cc2255;
-  --rails: #cc0000;
+  --green: #3fb950;
+  --amber: #e8b23b;
+  --red: #ef5f6b;
+  --ruby: #ab1b33;
+  --gem: #d62c49;
+  --rails: #d30001;
 
-  /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', monospace;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
-  /* Type scale */
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
-  --text-base: 0.875rem;
-  --text-lg: 1rem;
-  --text-xl: 1.125rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 2rem;
-  --text-4xl: 2.5rem;
-  --text-5xl: 3.5rem;
-  --text-6xl: 4.5rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.1875rem;
+  --text-2xl: 1.625rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 4.25rem;
+  --text-6xl: 5rem;
 
-  /* Spacing — 4px base */
   --sp-1: 0.25rem;
   --sp-2: 0.5rem;
   --sp-3: 0.75rem;
@@ -58,18 +50,15 @@
   --sp-24: 6rem;
   --sp-32: 8rem;
 
-  /* Layout */
-  --max-w: 1100px;
-  --max-w-sm: 720px;
+  --max-w: 1120px;
+  --max-w-sm: 760px;
   --nav-h: 56px;
 
-  /* Radius */
   --radius: 8px;
   --radius-sm: 6px;
-  --radius-lg: 12px;
+  --radius-lg: 14px;
   --radius-full: 9999px;
 
-  /* Transitions */
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
   --duration: 150ms;
 }

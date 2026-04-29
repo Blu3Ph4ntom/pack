@@ -1,0 +1,92 @@
+---
+---
+
+<section class="sect" id="use-cases">
+  <div class="wrap">
+    <p class="sect-eyebrow" data-reveal>Who It Is For</p>
+    <h2 class="sect-heading" data-reveal>Two buyer stories matter: the Rails developer and the Rails team.</h2>
+
+    <div class="cases" data-stagger>
+      <article class="case">
+        <p class="case-kicker">Solo Rails dev</p>
+        <h3 class="case-title">Fewer tool boundaries, faster feedback.</h3>
+        <p class="case-copy">Install gems, inspect dependencies, run tasks, and jump into Rails commands without bouncing between unrelated CLIs.</p>
+      </article>
+      <article class="case">
+        <p class="case-kicker">Platform or app team</p>
+        <h3 class="case-title">A better default story for Docker and CI.</h3>
+        <p class="case-copy">Use a single binary-oriented path for diagnostics, cache strategy, task orchestration, and a cleaner packaging story around dependency workflows.</p>
+      </article>
+      <article class="case">
+        <p class="case-kicker">Ruby-curious adopters</p>
+        <h3 class="case-title">The “Bun for Ruby” mental model.</h3>
+        <p class="case-copy">You keep familiar verbs, but the product promise is modern startup time, aggressive parsing performance, and a CLI that feels intentionally designed.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-12);
+    max-width: 760px;
+  }
+
+  .cases {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-4);
+  }
+
+  .case {
+    padding: var(--sp-6);
+    background: linear-gradient(180deg, rgba(171, 27, 51, 0.08), transparent 24%), var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .case-kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffdbe1;
+    margin-bottom: var(--sp-3);
+  }
+
+  .case-title {
+    font-size: var(--text-lg);
+    line-height: 1.35;
+    margin-bottom: var(--sp-3);
+  }
+
+  .case-copy {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 960px) {
+    .cases {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

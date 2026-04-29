@@ -19,14 +19,16 @@ body {
   font-size: var(--text-base);
   line-height: 1.6;
   color: var(--fg);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top, rgba(171, 27, 51, 0.12), transparent 24%),
+    linear-gradient(180deg, #080808 0%, #0b090a 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--accent-fg);
 }
 
 a {
@@ -41,15 +43,8 @@ code {
   background: var(--bg-muted);
   border: 1px solid var(--border);
   border-radius: 5px;
-  color: var(--accent);
-  font-weight: 450;
-  letter-spacing: 0.01em;
-  transition: all var(--duration) var(--ease);
-}
-
-code:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border-hover);
+  color: #ffdbe1;
+  font-weight: 500;
 }
 
 img {
@@ -57,7 +52,6 @@ img {
   display: block;
 }
 
-/* Utility */
 .wrap {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -70,7 +64,6 @@ img {
   padding: 0 var(--sp-6);
 }
 
-/* Reveal animation */
 [data-reveal] {
   opacity: 0;
   transform: translateY(12px);
@@ -84,7 +77,6 @@ img {
   transform: none;
 }
 
-/* Stagger children */
 [data-stagger] > * {
   opacity: 0;
   transform: translateY(8px);
@@ -108,18 +100,27 @@ img {
 [data-stagger].is-visible > :nth-child(8) { transition-delay: 420ms; }
 [data-stagger].is-visible > :nth-child(9) { transition-delay: 480ms; }
 
-/* Focus */
 :focus-visible {
-  outline: 1px solid var(--fg-muted);
+  outline: 1px solid var(--accent-bright);
   outline-offset: 2px;
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (max-width: 768px) {
-  .wrap, .wrap-sm { padding: 0 var(--sp-4); }
+  .wrap,
+  .wrap-sm {
+    padding: 0 var(--sp-4);
+  }
 }

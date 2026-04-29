@@ -6,8 +6,11 @@ import { withBase } from '../../utils/base'
   <div class="wrap footer-inner">
 
     <div class="footer-brand">
-      <a href={withBase('/')} class="footer-logo">Pack</a>
-      <p class="footer-tagline">Blazingly fast Ruby package manager. Built with Rust.</p>
+      <a href={withBase('/')} class="footer-logo">
+        <img src={withBase('/logo.png')} alt="Pack" class="footer-logo-img" width="32" height="32" />
+        <span>Pack</span>
+      </a>
+      <p class="footer-tagline">Ruby package management and Rails workflows with a faster Rust hot path.</p>
     </div>
 
     <nav class="footer-nav">
@@ -17,19 +20,19 @@ import { withBase } from '../../utils/base'
         <a href={withBase('/docs/getting-started')}>Getting Started</a>
         <a href={withBase('/docs/commands')}>Commands</a>
         <a href={withBase('/docs/rails')}>Rails Support</a>
+        <a href={withBase('/docs/benchmarks')}>Benchmarks</a>
       </div>
       <div class="footer-col">
         <p class="footer-col-head">Project</p>
         <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noopener">GitHub</a>
         <a href="https://crates.io/crates/pack" target="_blank" rel="noopener">crates.io</a>
-        <a href="https://github.com/Blu3Ph4ntom/pack/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
         <a href="https://github.com/Blu3Ph4ntom/pack/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
       </div>
       <div class="footer-col">
         <p class="footer-col-head">Compare</p>
-        <a href={withBase('/docs/#benchmarks')}>Benchmarks</a>
-        <a href={withBase('/docs/commands#gem')}>vs gem</a>
-        <a href={withBase('/docs/commands#bundle')}>vs Bundler</a>
+        <a href={withBase('/docs/benchmarks')}>Benchmarks</a>
+        <a href={withBase('/docs/commands#gem-compatible')}>vs gem</a>
+        <a href={withBase('/docs/commands#bundler-adjacent')}>vs Bundler</a>
       </div>
     </nav>
 
@@ -37,7 +40,7 @@ import { withBase } from '../../utils/base'
 
   <div class="footer-bottom">
     <div class="wrap footer-bottom-inner">
-      <span>© 2025 Blu3Ph4ntom · MIT License</span>
+      <span>© 2026 Blu3Ph4ntom · MIT License</span>
       <span>pack v0.1.0 · Rust-Powered</span>
     </div>
   </div>
@@ -57,13 +60,22 @@ import { withBase } from '../../utils/base'
   }
 
   .footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
     font-family: var(--font-mono);
     font-size: var(--text-lg);
-    font-weight: 500;
+    font-weight: 700;
     color: var(--fg);
-    display: block;
     margin-bottom: var(--sp-3);
     letter-spacing: -0.02em;
+  }
+
+  .footer-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    object-fit: cover;
   }
 
   .footer-tagline {

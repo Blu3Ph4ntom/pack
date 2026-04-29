@@ -5,19 +5,8 @@ import { withBase } from '../../utils/base'
 <header class="nav" x-data="{ open: false }">
   <div class="wrap nav-inner">
     <a href={withBase('/')} class="nav-brand" aria-label="Pack Home">
-      <span class="nav-logo">
-        <svg width="110" height="28" viewBox="0 0 110 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="28" height="28" rx="6" fill="url(#gradient)"/>
-          <text x="14" y="20" text-anchor="middle" fill="white" font-family="system-ui" font-size="16" font-weight="bold">P</text>
-          <text x="38" y="19" fill="currentColor" font-family="var(--font-mono)" font-size="14" font-weight="600">ack</text>
-          <defs>
-            <linearGradient id="gradient" x1="0" y1="0" x2="28" y2="28">
-              <stop stop-color="#ff6b6b"/>
-              <stop offset="1" stop-color="#ee5a24"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </span>
+      <img src={withBase('/logo.png')} alt="Pack" class="nav-logo" width="36" height="36" />
+      <span class="nav-wordmark">Pack</span>
     </a>
 
     <nav class="nav-links" :class="{ 'is-open': open }">
@@ -59,6 +48,7 @@ import { withBase } from '../../utils/base'
   .nav-brand {
     display: flex;
     align-items: center;
+    gap: var(--sp-3);
     margin-right: auto;
     text-decoration: none;
     transition: opacity var(--duration) var(--ease);
@@ -68,9 +58,18 @@ import { withBase } from '../../utils/base'
   .nav-brand:hover { opacity: 0.8; text-decoration: none; }
 
   .nav-logo {
-    display: block;
-    height: 28px;
-    width: auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 0 24px rgba(171, 27, 51, 0.24);
+  }
+
+  .nav-wordmark {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .nav-links {
@@ -97,8 +96,8 @@ import { withBase } from '../../utils/base'
   .nav-cta {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--bg);
-    background: var(--accent);
+    color: var(--accent-fg);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
     transition: transform var(--duration) var(--ease), opacity var(--duration) var(--ease);

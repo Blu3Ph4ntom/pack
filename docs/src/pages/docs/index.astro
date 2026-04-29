@@ -1,160 +1,175 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import Callout from '../../components/docs/Callout.astro'
 import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/'
+const headings = [
+  { id: 'what-is-pack', text: 'What is Pack?', level: 2 },
+  { id: 'positioning', text: 'Positioning', level: 2 },
+  { id: 'what-exists-today', text: 'What exists today', level: 2 },
+  { id: 'why-rails-teams-care', text: 'Why Rails teams care', level: 2 },
+]
 ---
 
-<DocsLayout title="Pack Documentation" description="Pack is an ultra-fast Ruby package manager written in Rust.">
-  <a slot="sidebar" href={withBase('/docs/')} class="sidebar-home">Documentation</a>
-  <nav class="sidebar-nav">
-    <p class="sidebar-section">Getting Started</p>
-    <a href={withBase('/docs/getting-started')}>Introduction</a>
-    <a href={withBase('/docs/installation')}>Installation</a>
-    <a href={withBase('/docs/quick-start')}>Quick Start</a>
-    <p class="sidebar-section">Commands</p>
-    <a href={withBase('/docs/commands')}>All Commands</a>
-    <a href={withBase('/docs/commands#install')}>pack install</a>
-    <a href={withBase('/docs/commands#gem')}>pack gem</a>
-    <a href={withBase('/docs/commands#exec')}>pack exec</a>
-    <a href={withBase('/docs/commands#rails')}>pack rails</a>
-    <p class="sidebar-section">Guides</p>
-    <a href={withBase('/docs/rails')}>Rails Support</a>
-    <a href={withBase('/docs/docker')}>Docker & Pack</a>
-    <a href={withBase('/docs/plugins')}>Plugin System</a>
-  </nav>
+<DocsLayout title="Introduction — Pack Docs" description="What Pack is, who it is for, and what the current CLI actually ships.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
 
-  <div class="doc-content">
-    <h1>Introduction</h1>
-    <p class="lead">Pack is an ultra-fast Ruby package manager written in Rust.</p>
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Introduction</span>
+    </nav>
 
-    <h2>Why Pack?</h2>
-    <ul>
-      <li><strong>157,000x faster</strong> — Gemfile parsing in microseconds vs milliseconds</li>
-      <li><strong>No Ruby required</strong> — Works on systems without Ruby installed</li>
-      <li><strong>Native gem support</strong> — Direct RubyGems.org integration</li>
-      <li><strong>First-class Rails</strong> — Commands designed for Rails developers</li>
-      <li><strong>Binary lockfile</strong> — pack.lock with MessagePack for instant parsing</li>
-      <li><strong>Parallel downloads</strong> — Uses Rayon for concurrent gem installs</li>
-    </ul>
+    <h1 class="doc-h1">Introduction</h1>
+    <p class="doc-lead">Pack is a Rust-powered Ruby package manager and Rails workflow CLI aimed at making everyday Ruby tooling feel modern, fast, and coherent.</p>
 
-    <h2>Quick Example</h2>
-    <pre><code>$ pack install
-Installing 47 gems... <span class="success">done</span> in 2.3s
+    <section id="what-is-pack">
+      <h2 class="doc-h2">What is Pack?</h2>
+      <p class="doc-p">Pack combines several adjacent jobs that Ruby developers usually split across separate commands. It exposes native gem registry operations, Gemfile and lockfile parsing, task-running via <code>Packfile</code>, environment diagnostics, plugin loading, and Rails-specific helper commands.</p>
+      <p class="doc-p">The product story is not “reinvent Ruby.” The product story is “keep the verbs, remove the drag.”</p>
+    </section>
 
-$ pack server
-Pack v0.1.0 — Rails 8.0.0
-<span class="success">Server running on http://localhost:3000</span></code></pre>
+    <section id="positioning">
+      <h2 class="doc-h2">Positioning</h2>
+      <p class="doc-p">The intended mental model is close to “Bun for Ruby,” but the site now anchors that framing in the shipped command surface instead of empty hype. For Pack, that means speed, a stronger default UX, and one opinionated front door for common Ruby and Rails workflows.</p>
+      <Callout type="tip" title="Shipped-first marketing">
+        <p>The homepage and docs intentionally avoid claiming full ecosystem replacement beyond what the current codebase exposes today.</p>
+      </Callout>
+    </section>
 
-    <h2>Installation</h2>
-    <pre><code>cargo install pack</code></pre>
-    <p>Or download a pre-built binary from the releases page.</p>
+    <section id="what-exists-today">
+      <h2 class="doc-h2">What exists today</h2>
+      <ul class="doc-ul">
+        <li>Native gem-facing verbs such as <code>install</code>, <code>list</code>, <code>search</code>, <code>info</code>, <code>env</code>, <code>outdated</code>, and <code>cleanup</code>.</li>
+        <li>Gemfile editing and dependency helpers like <code>add</code>, <code>remove</code>, <code>update</code>, <code>why</code>, and <code>generate</code>.</li>
+        <li>Binary <code>pack.lock</code> generation and inspection.</li>
+        <li><code>Packfile</code>-driven task execution with <code>pack run</code> and <code>pack tasks</code>.</li>
+        <li>Rails-oriented commands such as <code>server</code>, <code>console</code>, <code>test</code>, <code>rspec</code>, <code>db</code>, <code>assets</code>, <code>cache</code>, <code>docker</code>, <code>rails</code>, and <code>rake</code>.</li>
+      </ul>
+    </section>
 
-    <h2>Next Steps</h2>
-    <p>
-      <a href={withBase('/docs/getting-started')}>Get started with Pack →</a>
-    </p>
+    <section id="why-rails-teams-care">
+      <h2 class="doc-h2">Why Rails teams care</h2>
+      <p class="doc-p">For companies shipping Rails, the value is not just microbenchmarks. It is a more unified CLI for gem operations, diagnostics, app tasks, and Rails automation, plus a cleaner story for Dockerized workflows and CI ergonomics.</p>
+      <p class="doc-p">The criterion benches and shell comparison scripts in the repository support the performance narrative. The docs link that story directly back to source rather than hand-waving it.</p>
+    </section>
+
+    <div class="page-nav">
+      <div></div>
+      <a href={withBase('/docs/getting-started')}>
+        <span>Getting Started</span>
+        <span>→</span>
+      </a>
+    </div>
   </div>
 </DocsLayout>
 
 <style>
-  .sidebar-home {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--fg);
-    margin-bottom: var(--sp-4);
-    display: block;
-  }
-
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-1);
-  }
-
-  .sidebar-section {
-    font-size: var(--text-xs);
-    font-weight: 600;
-    color: var(--fg-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: var(--sp-4);
-    margin-bottom: var(--sp-2);
-  }
-
-  .sidebar-nav a {
-    font-size: var(--text-sm);
-    color: var(--fg-secondary);
-    padding: var(--sp-1) 0;
-    transition: color var(--duration) var(--ease);
-  }
-
-  .sidebar-nav a:hover { color: var(--fg); }
-
-  .doc-content {
-    padding: var(--sp-8) var(--sp-10);
+  .doc-page {
     max-width: 720px;
+    padding: var(--sp-12) var(--sp-10);
   }
 
-  .doc-content h1 {
-    font-size: var(--text-3xl);
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+
+  .breadcrumb a:hover { color: var(--fg-secondary); }
+  .bc-sep { opacity: 0.4; }
+
+  .doc-h1 {
+    font-size: clamp(1.75rem, 4vw, 2.4rem);
     font-weight: 700;
+    line-height: 1.15;
     letter-spacing: -0.03em;
-    margin-bottom: var(--sp-4);
+    margin-bottom: var(--sp-3);
   }
 
-  .doc-content h2 {
+  .doc-lead {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-10);
+    line-height: 1.65;
+  }
+
+  .doc-h2 {
     font-size: var(--text-xl);
     font-weight: 600;
     letter-spacing: -0.02em;
-    margin-top: var(--sp-8);
+    margin-top: var(--sp-12);
     margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+
+  .doc-p {
+    font-size: var(--text-base);
+    color: var(--fg-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-4);
+  }
+
+  .doc-ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: var(--sp-4) 0;
+  }
+
+  .doc-ul li {
+    padding-left: var(--sp-4);
+    position: relative;
+    color: var(--fg-secondary);
+    line-height: 1.7;
+  }
+
+  .doc-ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent-bright);
+  }
+
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
     padding-top: var(--sp-6);
     border-top: 1px solid var(--border);
   }
 
-  .doc-content .lead {
-    font-size: var(--text-lg);
-    color: var(--fg-secondary);
-    margin-bottom: var(--sp-8);
-  }
-
-  .doc-content p {
-    margin-bottom: var(--sp-4);
-    line-height: 1.7;
-  }
-
-  .doc-content ul {
-    margin-bottom: var(--sp-6);
-    padding-left: var(--sp-6);
-  }
-
-  .doc-content li {
-    margin-bottom: var(--sp-2);
-  }
-
-  .doc-content pre {
-    background: var(--bg-muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--sp-4);
-    margin-bottom: var(--sp-6);
-    overflow-x: auto;
-  }
-
-  .doc-content code {
-    font-family: var(--font-mono);
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
     font-size: var(--text-sm);
-    background: none;
-    border: none;
-    padding: 0;
+    color: var(--fg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-2) var(--sp-4);
   }
 
-  .doc-content pre code {
+  .page-nav a:hover {
     color: var(--fg);
+    border-color: var(--border-hover);
   }
 
-  .doc-content .success { color: var(--green); }
-
-  .doc-content a {
-    color: var(--accent);
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
   }
 </style>

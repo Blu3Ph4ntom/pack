@@ -1,0 +1,182 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/commands'
+const headings = [
+  { id: 'gem-compatible', text: 'Gem-compatible verbs', level: 2 },
+  { id: 'bundler-adjacent', text: 'Bundler-adjacent flows', level: 2 },
+  { id: 'tasking-and-diagnostics', text: 'Tasks and diagnostics', level: 2 },
+  { id: 'rails-shortcuts', text: 'Rails shortcuts', level: 2 },
+]
+---
+
+<DocsLayout title="Commands — Pack Docs" description="Command groups and how Pack maps to Ruby and Rails workflows.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
+
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Commands</span>
+    </nav>
+
+    <h1 class="doc-h1">Commands</h1>
+    <p class="doc-lead">These command groups come directly from the clap subcommands defined in <code>crates/pack-cli/src/main.rs</code>.</p>
+
+    <section id="gem-compatible">
+      <h2 class="doc-h2">Gem-compatible verbs</h2>
+      <div class="grid">
+        <div class="card"><code>pack install rails</code><p>Install a specific gem through the native manager path.</p></div>
+        <div class="card"><code>pack list rails</code><p>List installed gems, optionally matching a pattern.</p></div>
+        <div class="card"><code>pack search rails</code><p>Search remote gems.</p></div>
+        <div class="card"><code>pack info rails</code><p>Inspect gem metadata and dependencies.</p></div>
+        <div class="card"><code>pack env</code><p>Show gem-related environment information.</p></div>
+        <div class="card"><code>pack outdated</code><p>Check for outdated gems.</p></div>
+      </div>
+    </section>
+
+    <section id="bundler-adjacent">
+      <h2 class="doc-h2">Bundler-adjacent flows</h2>
+      <div class="grid">
+        <div class="card"><code>pack install</code><p>Runs a Gemfile install path when no specific gem is supplied.</p></div>
+        <div class="card"><code>pack exec rails console</code><p>Run gem binaries directly with a “faster front door” posture.</p></div>
+        <div class="card"><code>pack add rails</code><p>Add a dependency to the Gemfile.</p></div>
+        <div class="card"><code>pack remove rails</code><p>Remove a dependency from the Gemfile.</p></div>
+        <div class="card"><code>pack update</code><p>Update all or one gem entry.</p></div>
+        <div class="card"><code>pack generate</code><p>Generate or update Gemfile.lock.</p></div>
+        <div class="card"><code>pack why rack</code><p>Trace why a gem appears in the dependency tree.</p></div>
+        <div class="card"><code>pack lock</code><p>Write a binary <code>pack.lock</code>.</p></div>
+      </div>
+    </section>
+
+    <section id="tasking-and-diagnostics">
+      <h2 class="doc-h2">Tasks and diagnostics</h2>
+      <div class="grid">
+        <div class="card"><code>pack doctor</code><p>Inspect project state, Ruby environment, cache directories, gems, plugins, and Rails issues.</p></div>
+        <div class="card"><code>pack run dev</code><p>Run a named task from a Packfile.</p></div>
+        <div class="card"><code>pack tasks</code><p>List Packfile task names and optionally descriptions.</p></div>
+        <div class="card"><code>pack plugins list</code><p>Inspect installed Pack plugins.</p></div>
+      </div>
+    </section>
+
+    <section id="rails-shortcuts">
+      <h2 class="doc-h2">Rails shortcuts</h2>
+      <div class="grid">
+        <div class="card"><code>pack server</code><p>Start the Rails server.</p></div>
+        <div class="card"><code>pack console</code><p>Open Rails console.</p></div>
+        <div class="card"><code>pack test</code><p>Run Rails tests.</p></div>
+        <div class="card"><code>pack rspec</code><p>Run RSpec with passthrough args.</p></div>
+        <div class="card"><code>pack db migrate</code><p>Run database operations.</p></div>
+        <div class="card"><code>pack assets precompile</code><p>Drive asset pipeline operations.</p></div>
+        <div class="card"><code>pack cache clear</code><p>Run cache helpers.</p></div>
+        <div class="card"><code>pack docker</code><p>Generate Docker support for a Rails app.</p></div>
+      </div>
+    </section>
+
+    <div class="page-nav">
+      <a href={withBase('/docs/getting-started')}>
+        <span>←</span>
+        <span>Getting Started</span>
+      </a>
+      <a href={withBase('/docs/rails')}>
+        <span>Rails Workflows</span>
+        <span>→</span>
+      </a>
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .doc-page {
+    max-width: 760px;
+    padding: var(--sp-12) var(--sp-10);
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+  .bc-sep { opacity: 0.4; }
+  .doc-h1 {
+    font-size: clamp(1.75rem, 4vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-3);
+  }
+  .doc-lead {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-10);
+    line-height: 1.65;
+  }
+  .doc-h2 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: var(--sp-12);
+    margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(171, 27, 51, 0.08), transparent 30%), var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--sp-5);
+  }
+  .card code {
+    display: inline-block;
+    margin-bottom: var(--sp-3);
+  }
+  .card p {
+    color: var(--fg-secondary);
+    font-size: var(--text-sm);
+    line-height: 1.65;
+  }
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--border);
+  }
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-2) var(--sp-4);
+  }
+  .page-nav a:hover {
+    color: var(--fg);
+    border-color: var(--border-hover);
+  }
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
+  }
+  @media (max-width: 720px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

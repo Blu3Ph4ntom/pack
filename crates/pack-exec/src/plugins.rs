@@ -398,10 +398,6 @@ impl PluginManager {
         self.plugins.len()
     }
 
-    pub fn enabled_count(&self) -> usize {
-        self.plugins.values().filter(|p| p.enabled).count()
-    }
-
     pub fn disabled_count(&self) -> usize {
         self.plugins.values().filter(|p| !p.enabled).count()
     }

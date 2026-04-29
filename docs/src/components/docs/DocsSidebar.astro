@@ -1,0 +1,187 @@
+---
+import { withBase } from '../../utils/base'
+
+export interface Props {
+  currentPage: string
+}
+
+const { currentPage } = Astro.props
+
+const nav = [
+  {
+    group: 'Start Here',
+    items: [
+      { label: 'Introduction', href: '/docs/' },
+      { label: 'Getting Started', href: '/docs/getting-started' },
+      { label: 'Benchmarks', href: '/docs/benchmarks' },
+    ],
+  },
+  {
+    group: 'Use Pack',
+    items: [
+      { label: 'Commands', href: '/docs/commands' },
+      { label: 'Rails Workflows', href: '/docs/rails' },
+    ],
+  },
+]
+
+function active(href: string) {
+  return currentPage === href || (href !== '/docs/' && currentPage.startsWith(href))
+}
+---
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <a href={withBase('/')} class="sidebar-brand" aria-label="Pack Home">
+      <img src={withBase('/logo.png')} alt="Pack" class="sidebar-logo" width="36" height="36" />
+      <div class="sidebar-brand-copy">
+        <span class="sidebar-name">Pack</span>
+        <span class="sidebar-tag">Ruby tooling, rewritten.</span>
+      </div>
+    </a>
+    <span class="sidebar-version">v0.1.0</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    {nav.map(section => (
+      <div class="sidebar-group">
+        <p class="sidebar-group-label">{section.group}</p>
+        <ul class="sidebar-items">
+          {section.items.map(item => (
+            <li>
+              <a href={withBase(item.href)} class:list={['sidebar-link', { 'is-active': active(item.href) }]}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </nav>
+  <div class="sidebar-links">
+    <a href="https://github.com/Blu3Ph4ntom/pack" target="_blank" rel="noreferrer">GitHub</a>
+    <a href="https://crates.io/crates/pack" target="_blank" rel="noreferrer">crates.io</a>
+  </div>
+</div>
+
+<style>
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding-bottom: var(--sp-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+
+  .sidebar-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 0 32px rgba(171, 27, 51, 0.2);
+  }
+
+  .sidebar-brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sidebar-name {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--fg);
+  }
+
+  .sidebar-tag {
+    font-size: 11px;
+    color: var(--fg-muted);
+  }
+
+  .sidebar-version {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: #ffdbe1;
+    background: rgba(171, 27, 51, 0.12);
+    border: 1px solid rgba(171, 27, 51, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+  }
+
+  .sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .sidebar-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0 var(--sp-2);
+    margin-bottom: var(--sp-2);
+  }
+
+  .sidebar-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .sidebar-link {
+    display: block;
+    font-size: 13px;
+    color: var(--fg-secondary);
+    padding: 6px var(--sp-2);
+    border-radius: var(--radius-sm);
+    transition: all var(--duration) var(--ease);
+  }
+
+  .sidebar-link:hover {
+    color: var(--fg);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .sidebar-link.is-active {
+    color: var(--fg);
+    font-weight: 500;
+    background: rgba(171, 27, 51, 0.1);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  .sidebar-links {
+    display: flex;
+    gap: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--fg-muted);
+  }
+
+  .sidebar-links a:hover {
+    color: var(--fg-secondary);
+  }
+</style>

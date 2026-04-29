@@ -5,28 +5,28 @@
   <div class="wrap">
 
     <p class="sect-eyebrow" data-reveal>The Problem</p>
-    <h2 class="sect-heading" data-reveal>Bundle install takes<br />forever. Every time.</h2>
+    <h2 class="sect-heading" data-reveal>Ruby package management still feels like startup tax.</h2>
     <p class="sect-body" data-reveal>
-      Ruby developers waste hours waiting for <code>bundle install</code>.<br />
-      Docker builds fail because of gem path issues. CI pipelines crawl.
+      Rails teams pay for the same friction over and over:
+      cold CLI startup, Bundler overhead, container path mismatch, and dependency tooling that feels split across three eras.
     </p>
 
     <div class="symptoms" data-stagger>
       <div class="symptom">
-        <p class="symptom-name">5-30 min installs</p>
-        <p class="symptom-desc">Complex Gemfiles with native extensions take forever. Parallel downloads are an afterthought.</p>
+        <p class="symptom-name">Slow path to first feedback</p>
+        <p class="symptom-desc">Parsing, bootstrapping, and basic gem tasks start with Ruby process cost before useful work begins.</p>
       </div>
       <div class="symptom">
-        <p class="symptom-name">Docker gem issues</p>
-        <p class="symptom-desc">"gem not found" errors in containers. Bundler path mismatches between dev and prod.</p>
+        <p class="symptom-name">Rails workflow fragmentation</p>
+        <p class="symptom-desc">`gem`, Bundler, project tasks, and Rails commands all feel related, but they do not live in one coherent CLI.</p>
       </div>
       <div class="symptom">
-        <p class="symptom-name">500ms just to start</p>
-        <p class="symptom-desc">Ruby interpreter startup + Bundler loading = half second gone before any work.</p>
+        <p class="symptom-name">CI and Docker churn</p>
+        <p class="symptom-desc">Environment-specific paths and repeated install work keep slowing down container builds and deploy flows.</p>
       </div>
       <div class="symptom">
-        <p class="symptom-name">Slow CI/CD</p>
-        <p class="symptom-desc">Gem installation is the bottleneck. Every commit waits for bundler to finish.</p>
+        <p class="symptom-name">Poor observability</p>
+        <p class="symptom-desc">When dependencies drift or lockfiles get heavy, the default toolchain rarely explains the problem quickly.</p>
       </div>
     </div>
 

@@ -1,193 +1,182 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import Callout from '../../components/docs/Callout.astro'
 import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/getting-started'
+const headings = [
+  { id: 'install-pack', text: 'Install Pack', level: 2 },
+  { id: 'existing-project', text: 'Existing Rails project', level: 2 },
+  { id: 'new-project', text: 'New Rails project', level: 2 },
+  { id: 'first-commands', text: 'First commands to run', level: 2 },
+]
 ---
 
-<DocsLayout title="Getting Started — Pack" description="Get started with Pack, the blazingly fast Ruby package manager.">
-  <a slot="sidebar" href={withBase('/docs/')} class="sidebar-home">Documentation</a>
-  <nav class="sidebar-nav">
-    <p class="sidebar-section">Getting Started</p>
-    <a href={withBase('/docs/getting-started')} class="active">Introduction</a>
-    <a href={withBase('/docs/installation')}>Installation</a>
-    <a href={withBase('/docs/quick-start')}>Quick Start</a>
-    <p class="sidebar-section">Commands</p>
-    <a href={withBase('/docs/commands')}>All Commands</a>
-    <a href={withBase('/docs/commands#install')}>pack install</a>
-    <a href={withBase('/docs/commands#gem')}>pack gem</a>
-    <a href={withBase('/docs/commands#exec')}>pack exec</a>
-    <a href={withBase('/docs/commands#rails')}>pack rails</a>
-  </nav>
+<DocsLayout title="Getting Started — Pack Docs" description="Install Pack and start using it in existing or new Rails projects.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
 
-  <div class="doc-content">
-    <h1>Getting Started</h1>
-    <p class="lead">Get up and running with Pack in under 5 minutes.</p>
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Getting Started</span>
+    </nav>
 
-    <h2>Prerequisites</h2>
-    <p>Pack is a standalone binary. It doesn't require Ruby to be installed to manage gems — though your project may still need Ruby to run.</p>
+    <h1 class="doc-h1">Getting Started</h1>
+    <p class="doc-lead">Start with an existing Rails app or use Pack to scaffold a new one. The key is to test the actual command surface quickly, not just admire the benchmarks.</p>
 
-    <h2>Installation</h2>
-    <pre><code><span class="comment"># From source (requires Rust)</span>
-cargo install pack
+    <section id="install-pack">
+      <h2 class="doc-h2">Install Pack</h2>
+      <pre class="doc-pre"><code>cargo install --path crates/pack-cli</code></pre>
+      <p class="doc-p">The current repository clearly supports installing from source. A binary-release and RubyGems packaging story can sit on top of that, but source install is the reliable baseline today.</p>
+    </section>
 
-<span class="comment"># Or download a pre-built binary</span>
-curl -fsSL https://github.com/Blu3Ph4ntom/pack/releases/latest/download/pack-linux-x86_64 -o pack
-chmod +x pack
-sudo mv pack /usr/local/bin/</code></pre>
+    <section id="existing-project">
+      <h2 class="doc-h2">Add Pack to an existing Rails project</h2>
+      <pre class="doc-pre"><code>pack init
+pack doctor
+pack install
+pack lock
+pack server</code></pre>
+      <Callout type="note">
+        <p><code>pack init</code> generates a <code>pack.lock</code>, optional helper files, and can produce Docker support.</p>
+      </Callout>
+    </section>
 
-    <h2>For Rails Developers</h2>
-    <pre><code><span class="comment"># Create a new Rails project with Docker support</span>
-pack new myapp --docker --database postgresql
+    <section id="new-project">
+      <h2 class="doc-h2">Create a new Rails project</h2>
+      <pre class="doc-pre"><code>pack new myapp --docker --database postgresql
 cd myapp
-
-<span class="comment"># Install gems (faster than bundle install!)</span>
 pack install
+pack server</code></pre>
+      <p class="doc-p">Pack exposes a dedicated <code>new</code> command intended to wrap Rails project creation and then layer Pack-specific setup on top.</p>
+    </section>
 
-<span class="comment"># Start Rails server</span>
-pack server
+    <section id="first-commands">
+      <h2 class="doc-h2">First commands to run</h2>
+      <ul class="doc-ul">
+        <li><code>pack doctor</code> checks Gemfile presence, Ruby tooling, cache directories, installed gems, and Rails-specific issues.</li>
+        <li><code>pack list</code>, <code>pack search</code>, and <code>pack info</code> let you validate the gem-facing path immediately.</li>
+        <li><code>pack run</code> and <code>pack tasks</code> expose Packfile-managed project commands.</li>
+        <li><code>pack console</code>, <code>pack test</code>, and <code>pack db migrate</code> prove the Rails-first workflow story.</li>
+      </ul>
+    </section>
 
-<span class="comment"># Open Rails console</span>
-pack console</code></pre>
-
-    <h2>For Existing Projects</h2>
-    <pre><code><span class="comment"># Initialize pack in existing Rails project</span>
-pack init
-
-<span class="comment"># Install gems</span>
-pack install
-
-<span class="comment"># Check for outdated gems</span>
-pack outdated
-
-<span class="comment"># See why a gem is installed</span>
-pack why rails</code></pre>
-
-    <h2>Core Commands</h2>
-    <ul>
-      <li><code>pack install</code> — Install gems from Gemfile</li>
-      <li><code>pack add rails</code> — Add a gem to your Gemfile</li>
-      <li><code>pack remove rails</code> — Remove a gem from your Gemfile</li>
-      <li><code>pack update</code> — Update gem versions</li>
-      <li><code>pack why rails</code> — Explain why a gem is in your dependencies</li>
-      <li><code>pack exec rails console</code> — Run Rails console directly</li>
-    </ul>
-
-    <h2>Next Steps</h2>
-    <p>
-      <a href={withBase('/docs/commands')}>Learn all commands →</a><br>
-      <a href={withBase('/docs/rails')}>Rails Support →</a>
-    </p>
+    <div class="page-nav">
+      <a href={withBase('/docs/')}>
+        <span>←</span>
+        <span>Introduction</span>
+      </a>
+      <a href={withBase('/docs/commands')}>
+        <span>Commands</span>
+        <span>→</span>
+      </a>
+    </div>
   </div>
 </DocsLayout>
 
 <style>
-  .sidebar-home {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--fg);
-    margin-bottom: var(--sp-4);
-    display: block;
-  }
-
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-1);
-  }
-
-  .sidebar-section {
-    font-size: var(--text-xs);
-    font-weight: 600;
-    color: var(--fg-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: var(--sp-4);
-    margin-bottom: var(--sp-2);
-  }
-
-  .sidebar-nav a {
-    font-size: var(--text-sm);
-    color: var(--fg-secondary);
-    padding: var(--sp-1) 0;
-    transition: color var(--duration) var(--ease);
-  }
-
-  .sidebar-nav a:hover,
-  .sidebar-nav a.active { color: var(--fg); }
-
-  .sidebar-nav a.active { font-weight: 500; }
-
-  .doc-content {
-    padding: var(--sp-8) var(--sp-10);
+  .doc-page {
     max-width: 720px;
+    padding: var(--sp-12) var(--sp-10);
   }
-
-  .doc-content h1 {
-    font-size: var(--text-3xl);
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+  .bc-sep { opacity: 0.4; }
+  .doc-h1 {
+    font-size: clamp(1.75rem, 4vw, 2.4rem);
     font-weight: 700;
+    line-height: 1.15;
     letter-spacing: -0.03em;
-    margin-bottom: var(--sp-4);
+    margin-bottom: var(--sp-3);
   }
-
-  .doc-content h2 {
+  .doc-lead {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-10);
+    line-height: 1.65;
+  }
+  .doc-h2 {
     font-size: var(--text-xl);
     font-weight: 600;
     letter-spacing: -0.02em;
-    margin-top: var(--sp-8);
+    margin-top: var(--sp-12);
     margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+  .doc-p {
+    color: var(--fg-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-4);
+  }
+  .doc-pre {
+    background: #0d1013;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--sp-5);
+    overflow-x: auto;
+    margin-bottom: var(--sp-5);
+  }
+  .doc-pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #ffdbe1;
+  }
+  .doc-ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .doc-ul li {
+    padding-left: var(--sp-4);
+    position: relative;
+    color: var(--fg-secondary);
+    line-height: 1.7;
+  }
+  .doc-ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent-bright);
+  }
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
     padding-top: var(--sp-6);
     border-top: 1px solid var(--border);
   }
-
-  .doc-content .lead {
-    font-size: var(--text-lg);
-    color: var(--fg-secondary);
-    margin-bottom: var(--sp-8);
-  }
-
-  .doc-content p {
-    margin-bottom: var(--sp-4);
-    line-height: 1.7;
-  }
-
-  .doc-content ul {
-    margin-bottom: var(--sp-6);
-    padding-left: var(--sp-6);
-  }
-
-  .doc-content li {
-    margin-bottom: var(--sp-2);
-  }
-
-  .doc-content li code {
-    color: var(--accent);
-  }
-
-  .doc-content pre {
-    background: var(--bg-muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--sp-4);
-    margin-bottom: var(--sp-6);
-    overflow-x: auto;
-  }
-
-  .doc-content code {
-    font-family: var(--font-mono);
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
     font-size: var(--text-sm);
-    background: none;
-    border: none;
-    padding: 0;
+    color: var(--fg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-2) var(--sp-4);
   }
-
-  .doc-content pre code {
+  .page-nav a:hover {
     color: var(--fg);
+    border-color: var(--border-hover);
   }
-
-  .doc-content .comment { color: var(--fg-muted); }
-  .doc-content .success { color: var(--green); }
-
-  .doc-content a {
-    color: var(--accent);
-    line-height: 2;
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
   }
 </style>

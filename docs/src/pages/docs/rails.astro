@@ -1,0 +1,161 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import Callout from '../../components/docs/Callout.astro'
+import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/rails'
+const headings = [
+  { id: 'rails-shape', text: 'Rails-shaped CLI', level: 2 },
+  { id: 'scaffolding', text: 'Scaffolding and init', level: 2 },
+  { id: 'ops-workflows', text: 'App operations', level: 2 },
+  { id: 'docker-story', text: 'Docker story', level: 2 },
+]
+---
+
+<DocsLayout title="Rails Workflows — Pack Docs" description="How Pack frames Rails support for app developers and teams.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
+
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Rails Workflows</span>
+    </nav>
+
+    <h1 class="doc-h1">Rails Workflows</h1>
+    <p class="doc-lead">Pack is most compelling when it speaks directly to how Rails teams actually work: create apps, boot apps, run migrations, operate test suites, and package for containers.</p>
+
+    <section id="rails-shape">
+      <h2 class="doc-h2">Rails-shaped CLI</h2>
+      <p class="doc-p">Instead of making Rails feel like an afterthought, Pack surfaces top-level commands for the operations a Rails developer repeats every day.</p>
+      <pre class="doc-pre"><code>pack server
+pack console
+pack test
+pack rspec spec/models
+pack db migrate
+pack assets precompile
+pack cache clear</code></pre>
+    </section>
+
+    <section id="scaffolding">
+      <h2 class="doc-h2">Scaffolding and init</h2>
+      <p class="doc-p"><code>pack new</code> is the “start here” path for greenfield projects. <code>pack init</code> is the adoption path for an existing Rails repository.</p>
+      <pre class="doc-pre"><code>pack new myapp --docker --database postgresql
+pack init --skip-docker</code></pre>
+    </section>
+
+    <section id="ops-workflows">
+      <h2 class="doc-h2">App operations</h2>
+      <p class="doc-p">The main Rails value is not new syntax. It is reducing context switching across the standard app lifecycle: start, inspect, migrate, run tasks, and troubleshoot.</p>
+      <Callout type="tip">
+        <p>For teams, <code>pack doctor</code> and <code>Packfile</code> task execution are as important as the Rails aliases. They help standardize local and CI workflows.</p>
+      </Callout>
+    </section>
+
+    <section id="docker-story">
+      <h2 class="doc-h2">Docker story</h2>
+      <p class="doc-p">The current codebase includes Docker generation paths for Rails apps. That matters because containerized Rails environments are where Bundler path churn becomes expensive and visible.</p>
+      <pre class="doc-pre"><code>pack docker
+docker compose -f docker-compose.pack.yml up</code></pre>
+    </section>
+
+    <div class="page-nav">
+      <a href={withBase('/docs/commands')}>
+        <span>←</span>
+        <span>Commands</span>
+      </a>
+      <a href={withBase('/docs/benchmarks')}>
+        <span>Benchmarks</span>
+        <span>→</span>
+      </a>
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .doc-page {
+    max-width: 720px;
+    padding: var(--sp-12) var(--sp-10);
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+  .bc-sep { opacity: 0.4; }
+  .doc-h1 {
+    font-size: clamp(1.75rem, 4vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-3);
+  }
+  .doc-lead {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-10);
+    line-height: 1.65;
+  }
+  .doc-h2 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: var(--sp-12);
+    margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+  .doc-p {
+    color: var(--fg-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-4);
+  }
+  .doc-pre {
+    background: #0d1013;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--sp-5);
+    overflow-x: auto;
+    margin-bottom: var(--sp-5);
+  }
+  .doc-pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #ffdbe1;
+  }
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--border);
+  }
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-2) var(--sp-4);
+  }
+  .page-nav a:hover {
+    color: var(--fg);
+    border-color: var(--border-hover);
+  }
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
+  }
+</style>

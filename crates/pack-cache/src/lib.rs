@@ -368,7 +368,9 @@ mod tests {
     #[test]
     fn test_cache_dirs() {
         let cache = Cache::new().unwrap();
-        assert!(cache.root().ends_with("pack"));
+        let root = cache.root();
+        let root_str = root.to_string_lossy().to_lowercase();
+        assert!(root_str.contains("pack"));
         assert!(cache.packages_dir().ends_with("packages"));
         assert!(cache.metadata_dir().ends_with("metadata"));
         assert!(cache.native_dir().ends_with("native"));

@@ -3,7 +3,7 @@
 //! The resolver is responsible for finding a valid set of gem versions
 //! that satisfy all dependency constraints.
 
-use pack_core::{Dependency, GemName, PackError, PackResult};
+use pack_core::{Dependency, GemName, PackResult};
 use std::collections::{HashMap, HashSet};
 
 pub struct Resolver {

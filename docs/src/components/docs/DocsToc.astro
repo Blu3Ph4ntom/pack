@@ -1,0 +1,136 @@
+---
+export interface Props {
+  headings: Array<{ id: string; text: string; level: number }>
+}
+
+const { headings } = Astro.props
+
+const resources = [
+  { label: 'GitHub Repository', href: 'https://github.com/Blu3Ph4ntom/pack' },
+  { label: 'Crates Package', href: 'https://crates.io/crates/pack' },
+  { label: 'Bench Scripts', href: 'https://github.com/Blu3Ph4ntom/pack/tree/main/benchmarks' },
+]
+---
+
+<aside class="toc">
+  <div class="toc-section">
+    <p class="toc-label">On this page</p>
+    <nav class="toc-nav">
+      {headings.length > 0 ? (
+        headings.map(h => (
+          <a href={`#${h.id}`} class:list={['toc-link', { [`toc-h${h.level}`]: true }]}>
+            {h.text}
+          </a>
+        ))
+      ) : (
+        <p class="toc-empty">No section headings</p>
+      )}
+    </nav>
+  </div>
+
+  <div class="toc-divider"></div>
+
+  <div class="toc-section">
+    <p class="toc-label">Resources</p>
+    <div class="toc-resources">
+      {resources.map(resource => (
+        <a href={resource.href} target="_blank" rel="noreferrer" class="toc-resource">
+          <span>{resource.label}</span>
+          <span class="toc-arrow">↗</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</aside>
+
+<style>
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--sp-8) var(--sp-6);
+  }
+
+  .toc-section {
+    padding: var(--sp-4) 0;
+  }
+
+  .toc-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: var(--sp-4);
+    padding-left: var(--sp-2);
+  }
+
+  .toc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .toc-link {
+    display: block;
+    font-size: 13px;
+    color: var(--fg-secondary);
+    padding: 6px var(--sp-2);
+    line-height: 1.5;
+    border-radius: var(--radius-sm);
+    border-left: 2px solid transparent;
+    transition: all 150ms var(--ease);
+  }
+
+  .toc-link:hover {
+    color: var(--fg);
+    background: rgba(255, 255, 255, 0.03);
+    border-left-color: var(--accent);
+  }
+
+  .toc-h3 {
+    padding-left: var(--sp-5);
+    font-size: 12px;
+    color: var(--fg-muted);
+  }
+
+  .toc-empty {
+    font-size: 12px;
+    color: var(--fg-muted);
+    opacity: 0.6;
+    padding: var(--sp-2);
+  }
+
+  .toc-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+    margin: var(--sp-2) 0;
+  }
+
+  .toc-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .toc-resource {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: 8px var(--sp-2);
+    border-radius: var(--radius-sm);
+    color: var(--fg-secondary);
+    font-size: 13px;
+    transition: all 150ms var(--ease);
+  }
+
+  .toc-resource:hover {
+    color: var(--fg);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .toc-arrow {
+    color: var(--fg-muted);
+  }
+</style>

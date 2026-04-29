@@ -7,7 +7,7 @@ interface Props {
   description?: string
 }
 
-const { title, description = 'Pack Documentation' } = Astro.props
+const { title, description = 'Pack documentation' } = Astro.props
 ---
 
 <!doctype html>
@@ -16,20 +16,24 @@ const { title, description = 'Pack Documentation' } = Astro.props
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content={description} />
-  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="theme-color" content="#080808" />
   <title>{title}</title>
-  <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+  <link rel="icon" type="image/png" href={withBase('/logo.png')} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
-  <div class="docs-shell">
-    <aside class="docs-side" x-data="{ open: false }" :class="{ 'is-open': open }">
+  <div class="docs-shell" x-data="{ open: false }">
+    <aside class="docs-side" :class="{ 'is-open': open }">
       <slot name="sidebar" />
     </aside>
     <main class="docs-main">
+      <button class="docs-menu" @click="open = !open" :aria-expanded="open">
+        <span>Menu</span>
+        <span class="docs-menu-mark">/docs</span>
+      </button>
       <slot />
     </main>
     <aside class="docs-toc">
@@ -51,7 +55,7 @@ const { title, description = 'Pack Documentation' } = Astro.props
 <style>
   .docs-shell {
     display: grid;
-    grid-template-columns: 280px 1fr 320px;
+    grid-template-columns: 280px minmax(0, 1fr) 300px;
     min-height: 100vh;
   }
 
@@ -62,13 +66,16 @@ const { title, description = 'Pack Documentation' } = Astro.props
     overflow-y: auto;
     padding: var(--sp-6) var(--sp-5);
     border-right: 1px solid var(--border);
-    background: var(--bg);
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    background:
+      radial-gradient(circle at top left, rgba(171, 27, 51, 0.12), transparent 28%),
+      var(--bg);
   }
 
   .docs-main {
     min-width: 0;
+    background:
+      linear-gradient(180deg, rgba(171, 27, 51, 0.03), transparent 220px),
+      var(--bg);
   }
 
   .docs-toc {
@@ -78,30 +85,60 @@ const { title, description = 'Pack Documentation' } = Astro.props
     overflow-y: auto;
     padding: var(--sp-6) var(--sp-5);
     border-left: 1px solid var(--border);
-    background: linear-gradient(90deg, var(--bg) 0%, rgba(10,10,15,0.5) 100%);
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    background:
+      linear-gradient(90deg, rgba(171, 27, 51, 0.04), transparent 40%),
+      var(--bg);
   }
 
-  @media (max-width: 1400px) {
-    .docs-shell { grid-template-columns: 280px 1fr 280px; }
+  .docs-menu {
+    display: none;
+    width: calc(100% - (var(--sp-10)));
+    margin: var(--sp-5);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-subtle);
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .docs-menu-mark {
+    color: var(--accent);
   }
 
   @media (max-width: 1200px) {
-    .docs-shell { grid-template-columns: 280px 1fr; }
-    .docs-toc { display: none; }
+    .docs-shell {
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+
+    .docs-toc {
+      display: none;
+    }
   }
 
   @media (max-width: 960px) {
-    .docs-shell { grid-template-columns: 1fr; }
+    .docs-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .docs-menu {
+      display: flex;
+    }
+
     .docs-side {
       position: fixed;
-      inset: 0;
+      inset: 0 auto 0 0;
       width: 280px;
       z-index: 100;
       transform: translateX(-100%);
-      transition: transform var(--duration) var(--ease);
+      transition: transform 180ms var(--ease);
     }
-    .docs-side.is-open { transform: none; }
+
+    .docs-side.is-open {
+      transform: translateX(0);
+    }
   }
 </style>
