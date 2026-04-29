@@ -166,6 +166,46 @@ pub struct Dependency {
     pub group: Option<String>,
 }
 
+impl Dependency {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: GemName(name.into()),
+            version: None,
+            group: None,
+        }
+    }
+
+    pub fn with_version(mut self, version: impl Into<String>) -> Self {
+        self.version = Some(GemVersion(version.into()));
+        self
+    }
+
+    pub fn in_group(mut self, group: impl Into<String>) -> Self {
+        self.group = Some(group.into());
+        self
+    }
+
+    pub fn name_str(&self) -> &str {
+        &self.name.0
+    }
+
+    pub fn version_str(&self) -> Option<&str> {
+        self.version.as_ref().map(|v| v.0.as_str())
+    }
+
+    pub fn group_str(&self) -> Option<&str> {
+        self.group.as_deref()
+    }
+
+    pub fn is_in_group(&self, group: &str) -> bool {
+        self.group.as_deref() == Some(group)
+    }
+
+    pub fn matches_name(&self, name: &str) -> bool {
+        self.name.0 == name
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct InstallPlan {
     pub gems_to_install: Vec<Dependency>,
