@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
-use pack_core::{Project, RubyEnvironment};
+use pack_core::{Project, RubyEnvironment, GemName};
+use pack_gemfile::{load_lockfile, find_dependency_path, add_gem, remove_gem};
 use std::io::Write;
 use std::process::Command;
 
@@ -28,11 +29,17 @@ enum Commands {
         /// Gem group
         #[arg(short, long)]
         group: Option<String>,
+        /// Skip running pack install after adding
+        #[arg(long)]
+        no_install: bool,
     },
     /// Remove a gem from Gemfile
     Remove {
         #[arg(value_name = "GEM")]
         gem: String,
+        /// Skip running pack install after removing
+        #[arg(long)]
+        no_install: bool,
     },
     /// Execute a command
     Exec {
@@ -68,11 +75,11 @@ fn main() {
         Some(Commands::Install) => {
             run_install();
         }
-        Some(Commands::Add { gem, version, group }) => {
-            run_add(&gem, version.as_deref(), group.as_deref());
+        Some(Commands::Add { gem, version, group, no_install }) => {
+            run_add(&gem, version.as_deref(), group.as_deref(), no_install);
         }
-        Some(Commands::Remove { gem }) => {
-            run_remove(&gem);
+        Some(Commands::Remove { gem, no_install }) => {
+            run_remove(&gem, no_install);
         }
         Some(Commands::Update { gem }) => {
             run_update(gem.as_deref());
@@ -179,26 +186,189 @@ fn run_exec(command: &str, args: &[String]) {
 }
 
 fn run_install() {
-    println!("pack install - not yet implemented");
-    std::process::exit(1);
+    let project = match Project::discover() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    if project.gemfile.is_none() {
+        eprintln!("Error: no Gemfile found in current directory");
+        std::process::exit(1);
+    }
+
+    println!("Installing gems...");
+
+    let output = Command::new("bundle")
+        .arg("install")
+        .current_dir(&project.path)
+        .output();
+
+    match output {
+        Ok(o) => {
+            std::io::stdout().write_all(&o.stdout).ok();
+            std::io::stderr().write_all(&o.stderr).ok();
+            if o.status.success() {
+                println!("Done.");
+            } else {
+                std::process::exit(o.status.code().unwrap_or(1));
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: failed to run bundle install: {}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
-fn run_add(gem: &str, version: Option<&str>, group: Option<&str>) {
-    println!("pack add {} {:?} {:?}", gem, version, group);
-    std::process::exit(1);
+fn run_add(gem: &str, version: Option<&str>, group: Option<&str>, no_install: bool) {
+    let project = match Project::discover() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let gemfile_path = match &project.gemfile {
+        Some(p) => p,
+        None => {
+            eprintln!("Error: no Gemfile found in current directory");
+            std::process::exit(1);
+        }
+    };
+
+    if let Err(e) = add_gem(gemfile_path, gem, version, group) {
+        eprintln!("Error: failed to add gem: {}", e);
+        std::process::exit(1);
+    }
+
+    println!("Added {} to Gemfile", gem);
+
+    if !no_install {
+        run_install();
+    }
 }
 
-fn run_remove(gem: &str) {
-    println!("pack remove {}", gem);
-    std::process::exit(1);
+fn run_remove(gem: &str, no_install: bool) {
+    let project = match Project::discover() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let gemfile_path = match &project.gemfile {
+        Some(p) => p,
+        None => {
+            eprintln!("Error: no Gemfile found in current directory");
+            std::process::exit(1);
+        }
+    };
+
+    match remove_gem(gemfile_path, gem) {
+        Ok(true) => println!("Removed {} from Gemfile", gem),
+        Ok(false) => {
+            eprintln!("Error: gem {} not found in Gemfile", gem);
+            std::process::exit(1);
+        }
+        Err(e) => {
+            eprintln!("Error: failed to remove gem: {}", e);
+            std::process::exit(1);
+        }
+    }
+
+    if !no_install {
+        run_install();
+    }
 }
 
 fn run_update(gem: Option<&str>) {
-    println!("pack update {:?}", gem);
-    std::process::exit(1);
+    let project = match Project::discover() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    if project.gemfile.is_none() {
+        eprintln!("Error: no Gemfile found in current directory");
+        std::process::exit(1);
+    }
+
+    println!("Updating gems...");
+
+    let mut cmd = Command::new("bundle");
+    cmd.arg("update");
+    if let Some(g) = gem {
+        cmd.arg(g);
+    }
+
+    let output = cmd.current_dir(&project.path).output();
+
+    match output {
+        Ok(o) => {
+            std::io::stdout().write_all(&o.stdout).ok();
+            std::io::stderr().write_all(&o.stderr).ok();
+            if o.status.success() {
+                println!("Done.");
+            } else {
+                std::process::exit(o.status.code().unwrap_or(1));
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: failed to run bundle update: {}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
 fn run_why(gem: &str) {
-    println!("pack why {}", gem);
-    std::process::exit(1);
+    let project = match Project::discover() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let lockfile_path = match &project.gemfile_lock {
+        Some(p) => p,
+        None => {
+            eprintln!("Error: no Gemfile.lock found. Run `pack install` first.");
+            std::process::exit(1);
+        }
+    };
+
+    let lockfile = match load_lockfile(lockfile_path) {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Error: failed to parse Gemfile.lock: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let target = GemName(gem.to_string());
+
+    if let Some(path) = find_dependency_path(&lockfile, &target) {
+        println!("{} is required by:", gem);
+
+        for (i, name) in path.iter().enumerate() {
+            if i == 0 {
+                println!("  {}", name.0);
+            } else {
+                for _ in 0..i {
+                    print!("   ");
+                }
+                print!("└─ ");
+                println!("{}", name.0);
+            }
+        }
+    } else {
+        println!("{} is not in the dependency tree", gem);
+    }
 }
