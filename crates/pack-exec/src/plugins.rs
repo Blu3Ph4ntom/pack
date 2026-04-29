@@ -324,6 +324,10 @@ impl PluginManager {
         self.plugins.values().collect()
     }
 
+    pub fn list_disabled(&self) -> Vec<&Plugin> {
+        self.plugins.values().filter(|p| !p.enabled).collect()
+    }
+
     pub fn list_commands(&self) -> Vec<String> {
         let mut commands = vec![];
         for plugin in self.plugins.values().filter(|p| p.enabled) {
@@ -332,6 +336,14 @@ impl PluginManager {
             }
         }
         commands
+    }
+
+    pub fn plugin_count(&self) -> usize {
+        self.plugins.len()
+    }
+
+    pub fn enabled_count(&self) -> usize {
+        self.plugins.values().filter(|p| p.enabled).count()
     }
 
     pub fn has_command(&self, cmd: &str) -> bool {
