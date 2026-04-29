@@ -267,6 +267,23 @@ impl InstallReport {
         self
     }
 
+    pub fn total_gems(&self) -> usize {
+        self.gems_installed + self.gems_cached
+    }
+
+    pub fn was_successful(&self) -> bool {
+        self.success
+    }
+
+    pub fn set_error(&mut self, error: String) {
+        self.success = false;
+        self.error_message = Some(error);
+    }
+
+    pub fn duration_ms(&self) -> u64 {
+        (self.duration_secs * 1000.0) as u64
+    }
+
     pub fn with_error(mut self, error: String) -> Self {
         self.success = false;
         self.error_message = Some(error);
