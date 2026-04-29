@@ -21,23 +21,60 @@ pub struct NativeGemManager {
 
 impl NativeGemManager {
     pub fn new() -> Self {
-        let cache_dir = std::env::var("PACK_CACHE_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| {
-                std::env::var("HOME")
-                    .map(|h| PathBuf::from(h).join(".cache").join("pack"))
-                    .unwrap_or_else(|_| PathBuf::from(".cache/pack"))
-            });
-
-        let gem_home = std::env::var("GEM_HOME")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| cache_dir.join("gem_home"));
+        let cache_dir = Self::default_cache_dir();
+        let gem_home = Self::default_gem_home(&cache_dir);
 
         Self {
             registry: Registry::with_cache_dir(cache_dir.clone()),
             gem_home,
             cache_dir,
         }
+    }
+
+    fn default_cache_dir() -> PathBuf {
+        std::env::var("PACK_CACHE_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                std::env::var("HOME")
+                    .map(|h| PathBuf::from(h).join(".cache").join("pack"))
+                    .unwrap_or_else(|_| PathBuf::from(".cache/pack"))
+            })
+    }
+
+    fn default_gem_home(cache_dir: &PathBuf) -> PathBuf {
+        std::env::var("GEM_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| cache_dir.join("gem_home"))
+    }
+
+    pub fn with_paths(cache_dir: PathBuf, gem_home: PathBuf) -> Self {
+        Self {
+            registry: Registry::with_cache_dir(cache_dir.clone()),
+            gem_home,
+            cache_dir,
+        }
+    }
+
+    pub fn gem_home(&self) -> &PathBuf {
+        &self.gem_home
+    }
+
+    pub fn cache_dir(&self) -> &PathBuf {
+        &self.cache_dir
+    }
+
+    pub fn installed_count(&self) -> PackResult<usize> {
+        let gems = self.registry.cached_gems()?;
+        Ok(gems.len())
+    }
+
+    pub fn clear_cache(&self) -> PackResult<()> {
+        let gems_dir = self.cache_dir.join("gems");
+        if gems_dir.exists() {
+            std::fs::remove_dir_all(&gems_dir)?;
+            std::fs::create_dir_all(&gems_dir)?;
+        }
+        Ok(())
     }
 
     /// List installed gems (from cache, no gem binary needed)
