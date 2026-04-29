@@ -1,0 +1,9 @@
+[package]
+name = "pack-cache"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pack-core = { path = "../pack-core" }
+directories = "6"
+thiserror = "2"

@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/pack-cli",
+  "crates/pack-core",
+  "crates/pack-gemfile",
+  "crates/pack-registry",
+  "crates/pack-resolver",
+  "crates/pack-installer",
+  "crates/pack-cache",
+  "crates/pack-exec",
+]
