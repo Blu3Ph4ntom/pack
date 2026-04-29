@@ -65,6 +65,42 @@ impl Plugin {
             .unwrap_or(false)
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+
+    pub fn commands(&self) -> &[String] {
+        &self.commands
+    }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+
+    pub fn disable(&mut self) {
+        self.enabled = false;
+    }
+
+    pub fn enable(&mut self) {
+        self.enabled = true;
+    }
+
+    pub fn supports_command(&self, cmd: &str) -> bool {
+        self.commands.is_empty() || self.commands.iter().any(|c| c == cmd)
+    }
+
     pub fn execute(&self, args: &[String]) -> PackResult<Output> {
         if !self.is_executable() {
             return Err(Exec(format!(
