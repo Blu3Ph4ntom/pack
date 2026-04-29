@@ -254,6 +254,36 @@ pub struct OutdatedGem {
     pub latest_version: GemVersion,
 }
 
+impl OutdatedGem {
+    pub fn new(name: GemName, current: GemVersion, latest: GemVersion) -> Self {
+        Self {
+            name,
+            current_version: current,
+            latest_version: latest,
+        }
+    }
+
+    pub fn name_str(&self) -> &str {
+        &self.name.0
+    }
+
+    pub fn current(&self) -> &str {
+        &self.current_version.0
+    }
+
+    pub fn latest(&self) -> &str {
+        &self.latest_version.0
+    }
+
+    pub fn full_name(&self) -> String {
+        format!("{} ({})", self.name.0, self.current_version.0)
+    }
+
+    pub fn upgrade_string(&self) -> String {
+        format!("{} -> {}", self.current_version.0, self.latest_version.0)
+    }
+}
+
 impl Default for NativeGemManager {
     fn default() -> Self {
         Self::new()
