@@ -19,9 +19,32 @@ impl Installer {
         })
     }
 
+    pub fn with_cache(cache: Cache) -> Self {
+        Self {
+            cache,
+            parallel: true,
+        }
+    }
+
+    pub fn sequential() -> PackResult<Self> {
+        let cache = Cache::new()?;
+        Ok(Self {
+            cache,
+            parallel: false,
+        })
+    }
+
     pub fn with_parallel(mut self, parallel: bool) -> Self {
         self.parallel = parallel;
         self
+    }
+
+    pub fn is_parallel(&self) -> bool {
+        self.parallel
+    }
+
+    pub fn cache(&self) -> &Cache {
+        &self.cache
     }
 
     pub fn install(&self, plan: &InstallPlan) -> PackResult<InstallReport> {
