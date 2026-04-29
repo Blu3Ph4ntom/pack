@@ -76,7 +76,17 @@ pub struct RubyEnvironment {
 
 impl RubyEnvironment {
     pub fn discover() -> Self {
-        let ruby_version = std::process::Command::new("ruby")
+        Self {
+            ruby_version: Self::get_ruby_version(),
+            gem_version: Self::get_gem_version(),
+            gem_available: Self::is_command_available("gem"),
+            bundle_version: Self::get_bundle_version(),
+            bundle_available: Self::is_command_available("bundle"),
+        }
+    }
+
+    fn get_ruby_version() -> Option<String> {
+        std::process::Command::new("ruby")
             .arg("--version")
             .output()
             .ok()
@@ -87,61 +97,59 @@ impl RubyEnvironment {
                     None
                 }
             })
-            .map(|s| s.trim().to_string());
+            .map(|s| s.trim().to_string())
+    }
 
-        let gem_version = std::process::Command::new("gem")
+    fn get_gem_version() -> Option<String> {
+        std::process::Command::new("gem")
             .arg("--version")
             .output()
             .ok()
             .and_then(|o| {
                 if o.status.success() {
-                    Some(
-                        String::from_utf8(o.stdout)
-                            .unwrap_or_default()
-                            .trim()
-                            .to_string(),
-                    )
+                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
                 } else {
                     None
                 }
-            });
+            })
+    }
 
-        let gem_available = std::process::Command::new("gem")
-            .arg("--version")
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false);
-
-        let bundle_version = std::process::Command::new("bundle")
+    fn get_bundle_version() -> Option<String> {
+        std::process::Command::new("bundle")
             .arg("--version")
             .output()
             .ok()
             .and_then(|o| {
                 if o.status.success() {
-                    Some(
-                        String::from_utf8(o.stdout)
-                            .unwrap_or_default()
-                            .trim()
-                            .to_string(),
-                    )
+                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
                 } else {
                     None
                 }
-            });
+            })
+    }
 
-        let bundle_available = std::process::Command::new("bundle")
+    fn is_command_available(cmd: &str) -> bool {
+        std::process::Command::new(cmd)
             .arg("--version")
             .output()
             .map(|o| o.status.success())
-            .unwrap_or(false);
+            .unwrap_or(false)
+    }
 
-        Self {
-            ruby_version,
-            gem_available,
-            bundle_available,
-            gem_version,
-            bundle_version,
-        }
+    pub fn has_ruby(&self) -> bool {
+        self.ruby_version.is_some()
+    }
+
+    pub fn has_gem(&self) -> bool {
+        self.gem_available
+    }
+
+    pub fn has_bundle(&self) -> bool {
+        self.bundle_available
+    }
+
+    pub fn is_pack_compatible(&self) -> bool {
+        self.gem_available || self.bundle_available
     }
 }
 
