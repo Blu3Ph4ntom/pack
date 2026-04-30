@@ -1306,14 +1306,24 @@ fn run_new(name: &str, skip_bundle: bool, skip_lock: bool, docker: bool, databas
     println!("Running: rails {}", args.join(" "));
     println!();
 
-    // Run rails new
-    let status = Command::new("rails")
+    // Run rails new and surface full diagnostics.
+    let output = Command::new("rails")
         .args(&args)
-        .status()
-        .context("rails new failed")?;
+        .output()
+        .map_err(|e| anyhow::anyhow!("failed to execute `rails new` (is Rails installed and on PATH?): {}", e))?;
 
-    if !status.success() {
-        anyhow::bail!("rails new failed with exit code: {:?}", status.code());
+    if !output.stdout.is_empty() {
+        std::io::stdout().write_all(&output.stdout).ok();
+    }
+    if !output.stderr.is_empty() {
+        std::io::stderr().write_all(&output.stderr).ok();
+    }
+
+    if !output.status.success() {
+        anyhow::bail!(
+            "`rails new` failed with exit code {:?}. If you're bootstrapping from scratch, install Rails first: `gem install rails`.",
+            output.status.code()
+        );
     }
 
     // Change to project directory
