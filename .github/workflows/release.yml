@@ -1,0 +1,120 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Rust tests
+        run: cargo test --workspace --quiet
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Build pack-rb gem
+        working-directory: gems/pack-rb
+        run: gem build pack-rb.gemspec
+
+  build-binaries:
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset_name: pack-x86_64-unknown-linux-gnu
+            binary_name: pack
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: pack-x86_64-pc-windows-msvc.exe
+            binary_name: pack.exe
+          - os: macos-13
+            target: x86_64-apple-darwin
+            asset_name: pack-x86_64-apple-darwin
+            binary_name: pack
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset_name: pack-aarch64-apple-darwin
+            binary_name: pack
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build pack binary
+        run: cargo build --release -p pack-cli --target ${{ matrix.target }}
+
+      - name: Stage asset
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary_name }}" "release-assets/${{ matrix.asset_name }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: release-assets/${{ matrix.asset_name }}
+
+  github-release:
+    needs: build-binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Flatten release assets
+        run: |
+          mkdir -p final-assets
+          find release-assets -type f -exec cp {} final-assets/ \;
+
+      - name: Generate checksums
+        working-directory: final-assets
+        run: sha256sum * > SHA256SUMS
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: final-assets/*
+
+  publish-gem:
+    needs: github-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Build gem
+        working-directory: gems/pack-rb
+        run: gem build pack-rb.gemspec
+
+      - name: Push gem to RubyGems.org
+        working-directory: gems/pack-rb
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: gem push pack-rb-*.gem

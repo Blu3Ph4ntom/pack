@@ -1,0 +1,116 @@
+<section class="sect" id="benchmarks">
+  <div class="wrap">
+    <p class="sect-eyebrow" data-reveal>Performance</p>
+    <h2 class="sect-heading" data-reveal>Measured command timings and parser timings.</h2>
+
+    <div class="bench-table" data-stagger>
+      <div class="bench-row bench-row--head">
+        <span>Operation</span>
+        <span>Comparison</span>
+      </div>
+      <div class="bench-row">
+        <span class="bench-op">pack --version</span>
+        <span class="bench-val">32.20 ms vs 368.24 ms for bundle --version</span>
+      </div>
+      <div class="bench-row">
+        <span class="bench-op">pack list</span>
+        <span class="bench-val">16.95 ms vs 496.37 ms for gem list</span>
+      </div>
+      <div class="bench-row">
+        <span class="bench-op">Gemfile parse (100 deps)</span>
+        <span class="bench-val">8.67–8.86 µs</span>
+      </div>
+      <div class="bench-row">
+        <span class="bench-op">Lockfile parse (50 gems)</span>
+        <span class="bench-val">48.45–50.08 µs</span>
+      </div>
+      <div class="bench-row">
+        <span class="bench-op">Lockfile parse (200 gems)</span>
+        <span class="bench-val">91.60–117.35 µs</span>
+      </div>
+    </div>
+
+    <p class="bench-note" data-reveal>
+      Local command timings are compared against <code>bundle</code> and <code>gem</code>. Parser timings come directly from Criterion benches in this repository.
+    </p>
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-12);
+  }
+
+  .bench-table {
+    border-top: 1px solid var(--border);
+    margin-bottom: var(--sp-8);
+  }
+
+  .bench-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-6);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bench-row--head {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .bench-op {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-secondary);
+  }
+
+  .bench-val {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--fg);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .bench-note {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.55;
+    max-width: 720px;
+  }
+
+  @media (max-width: 640px) {
+    .bench-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--sp-1);
+    }
+
+    .bench-val {
+      text-align: left;
+    }
+  }
+</style>

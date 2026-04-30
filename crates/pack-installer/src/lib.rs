@@ -228,13 +228,13 @@ mod tests {
             cached_gems: vec![],
         };
         let report = installer.install(&plan).unwrap();
-        assert!(report.gems_installed >= 0);
+        assert!(report.success);
     }
 
     #[test]
     fn test_list_installed_empty() {
         let installer = Installer::new().unwrap();
         let gems = installer.list_installed().unwrap();
-        assert!(gems.is_empty() || gems.len() >= 0);
+        assert!(gems.iter().all(|(name, version)| !name.trim().is_empty() && !version.trim().is_empty()));
     }
 }

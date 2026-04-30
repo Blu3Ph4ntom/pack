@@ -6,8 +6,8 @@ require "pack/rb/version"
 Gem::Specification.new do |spec|
   spec.name = "pack-rb"
   spec.version = Pack::RB::VERSION
-  spec.authors = ["Hemanth", "Piper Software"]
-  spec.email = ["opensource@piper.dev"]
+  spec.authors = ["Hemanth"]
+  spec.email = ["opensource@blu3phantom.dev"]
 
   spec.summary = "Install and launch the Pack Rust binary from RubyGems."
   spec.description = "pack-rb installs a Ruby wrapper executable named `pack` that downloads the matching Pack release binary for the current platform and then hands control to it."
@@ -16,8 +16,9 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.1"
 
   spec.metadata = {
-    "homepage_uri" => spec.homepage,
+    "homepage_uri" => "https://blu3ph4ntom.github.io/pack/",
     "source_code_uri" => spec.homepage,
+    "documentation_uri" => "https://blu3ph4ntom.github.io/pack/docs/",
     "changelog_uri" => "#{spec.homepage}/releases",
     "rubygems_mfa_required" => "true"
   }

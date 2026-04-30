@@ -1,7 +1,13 @@
 [package]
 name = "pack-cache"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Cache helpers for Pack."
+publish = false
 
 [dependencies]
 pack-core = { path = "../pack-core" }

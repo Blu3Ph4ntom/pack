@@ -2,7 +2,7 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use pack_core::{GemName, Project, RubyEnvironment};
 use pack_gemfile::{add_gem, find_dependency_path, load_lockfile, remove_gem};
-use pack_exec::OutputFormat;
+use pack_exec::{Executor, OutputFormat};
 use pack_registry::native::NativeGemManager;
 use std::io::Write;
 use std::path::PathBuf;
@@ -33,7 +33,8 @@ Supported commands:
   search     Search remote gems
   add        Add a gem to Gemfile
   remove     Remove a gem from Gemfile
-  update     Update gems in Gemfile or specific gem
+  update     Update gems in Gemfile or globally installed gems
+  upgrade    Upgrade the Pack wrapper install
   why        Explain why a gem is in the dependency tree
   generate   Generate Gemfile.lock from Gemfile
   exec       Execute a gem's binary directly
@@ -191,6 +192,15 @@ enum Commands {
     Update {
         #[arg(value_name = "GEM")]
         gem: Option<String>,
+        /// Update globally installed gems instead of the current project
+        #[arg(long)]
+        global: bool,
+    },
+    /// Upgrade Pack itself via the RubyGems wrapper
+    Upgrade {
+        /// Reinstall even if the wrapper appears current
+        #[arg(long)]
+        force: bool,
     },
     /// Explain why a gem is installed
     Why {
@@ -340,7 +350,8 @@ fn main() {
             no_install,
         }) => run_add(&gem, version.as_deref(), group.as_deref(), no_install),
         Some(Commands::Remove { gem, no_install }) => run_remove(&gem, no_install),
-        Some(Commands::Update { gem }) => run_update(gem.as_deref()),
+        Some(Commands::Update { gem, global }) => run_update(gem.as_deref(), global),
+        Some(Commands::Upgrade { force }) => run_upgrade(force),
         Some(Commands::Why { gem }) => run_why(&gem),
         Some(Commands::Generate { update, include_optional }) => run_generate(update.as_deref(), include_optional),
         Some(Commands::Lock { output }) => run_lock(output.as_deref()),
@@ -819,7 +830,33 @@ fn run_remove(gem: &str, no_install: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_update(gem: Option<&str>) -> anyhow::Result<()> {
+fn run_update(gem: Option<&str>, global: bool) -> anyhow::Result<()> {
+    if global {
+        let executor = Executor::new();
+        let mut args = vec!["update".to_string()];
+        if let Some(g) = gem {
+            args.push(g.to_string());
+        }
+
+        println!(
+            "Updating {}globally installed gems...",
+            gem.map(|_| "selected ").unwrap_or("")
+        );
+
+        let output = executor.exec_gem(&args)
+            .map_err(|e| anyhow::anyhow!("failed to run gem update: {}", e))?;
+
+        std::io::stdout().write_all(&output.stdout).ok();
+        std::io::stderr().write_all(&output.stderr).ok();
+
+        if output.status.success() {
+            println!("Done.");
+            return Ok(());
+        }
+
+        return Err(anyhow::anyhow!("gem update failed"));
+    }
+
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
     info!("Updating gems");
@@ -843,6 +880,48 @@ fn run_update(gem: Option<&str>) -> anyhow::Result<()> {
         Ok(())
     } else {
         Err(anyhow::anyhow!("bundle update failed"))
+    }
+}
+
+fn run_upgrade(force: bool) -> anyhow::Result<()> {
+    let executor = Executor::new();
+
+    if !executor.is_gem_available() {
+        return Err(anyhow::anyhow!(
+            "RubyGems is not available. Install Ruby first, then run `gem install pack-rb`."
+        ));
+    }
+
+    if !force {
+        let outdated = executor.exec_gem(&["outdated".to_string(), "pack-rb".to_string()])
+            .map_err(|e| anyhow::anyhow!("failed to check pack-rb version: {}", e))?;
+
+        if outdated.status.success() {
+            let stdout = String::from_utf8_lossy(&outdated.stdout);
+            if !stdout.contains("pack-rb") {
+                println!("pack-rb is already up to date.");
+                println!("Use `pack upgrade --force` to reinstall the wrapper.");
+                return Ok(());
+            }
+        }
+    }
+
+    println!("Upgrading Pack via RubyGems...");
+    let output = executor.exec_gem(&[
+        "install".to_string(),
+        "pack-rb".to_string(),
+        "--no-document".to_string(),
+    ])
+    .map_err(|e| anyhow::anyhow!("failed to run gem install pack-rb: {}", e))?;
+
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
+
+    if output.status.success() {
+        println!("Pack upgraded. Run `pack --version` to verify the active binary.");
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("pack upgrade failed"))
     }
 }
 

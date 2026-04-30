@@ -1,0 +1,114 @@
+---
+---
+
+<section class="sect" id="rails">
+  <div class="wrap">
+    <p class="sect-eyebrow" data-reveal>Who It Is For</p>
+    <h2 class="sect-heading" data-reveal>Where Ruby dependency work actually piles up.</h2>
+
+    <div class="cases" data-stagger x-data="{ active: 0 }">
+      <div class="case" :class="{ 'is-active': active === 0 }" @click="active = active === 0 ? null : 0">
+        <div class="case-row">
+          <p class="case-name">Ruby developers</p>
+          <span class="case-chevron">+</span>
+        </div>
+        <p class="case-detail" x-show="active === 0" x-transition>
+          Install, inspect, update, and execute dependencies without bouncing between unrelated commands or waiting on heavy startup each time.
+        </p>
+      </div>
+
+      <div class="case" :class="{ 'is-active': active === 1 }" @click="active = active === 1 ? null : 1">
+        <div class="case-row">
+          <p class="case-name">Rails teams</p>
+          <span class="case-chevron">+</span>
+        </div>
+        <p class="case-detail" x-show="active === 1" x-transition>
+          Keep package operations, project tasking, diagnostics, and Rails helpers close together so day-to-day app work feels like one CLI instead of a shell convention.
+        </p>
+      </div>
+
+      <div class="case" :class="{ 'is-active': active === 2 }" @click="active = active === 2 ? null : 2">
+        <div class="case-row">
+          <p class="case-name">Platform and CI flows</p>
+          <span class="case-chevron">+</span>
+        </div>
+        <p class="case-detail" x-show="active === 2" x-transition>
+          Reuse the same commands in automation for dependency checks, container setup, and repeatable project tasks without adding more wrapper scripts.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-12);
+    max-width: 720px;
+  }
+
+  .cases {
+    border-top: 1px solid var(--border);
+  }
+
+  .case {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--duration) var(--ease);
+  }
+
+  .case:hover,
+  .case.is-active {
+    background: var(--bg-subtle);
+  }
+
+  .case-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--sp-5) var(--sp-4);
+  }
+
+  .case-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .case-chevron {
+    font-size: var(--text-lg);
+    color: var(--fg-muted);
+    line-height: 1;
+    transition: transform var(--duration) var(--ease), color var(--duration) var(--ease);
+  }
+
+  .case.is-active .case-chevron {
+    transform: rotate(45deg);
+    color: var(--fg-secondary);
+  }
+
+  .case-detail {
+    padding: 0 var(--sp-4) var(--sp-5);
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.65;
+    max-width: 720px;
+  }
+</style>

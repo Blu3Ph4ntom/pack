@@ -10,3 +10,11 @@ members = [
   "crates/pack-cache",
   "crates/pack-exec",
 ]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/Blu3Ph4ntom/pack"
+homepage = "https://blu3ph4ntom.github.io/pack/"
+documentation = "https://blu3ph4ntom.github.io/pack/docs/"

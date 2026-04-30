@@ -1,0 +1,292 @@
+---
+import { withBase } from "../../utils/base";
+---
+
+<section class="hero">
+    <div class="wrap hero-inner">
+        <p class="hero-tag is-visible" data-reveal x-data="{ copied: false }">
+            <span class="hero-dot"></span>
+            <code>gem install pack-rb</code>
+            <button
+                class="hero-copy"
+                @click="navigator.clipboard.writeText('gem install pack-rb').then(() => { copied = true; setTimeout(() => copied = false, 1800); })"
+                aria-label="Copy install command"
+            >
+                <svg
+                    x-show="!copied"
+                    class="copy-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"
+                    ></rect>
+                    <path
+                        d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                    ></path>
+                </svg>
+                <svg
+                    x-show="copied"
+                    class="copy-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </button>
+        </p>
+
+        <h1 class="hero-h is-visible" data-reveal>
+            Ruby package work,
+            <span class="hero-accent">tightened.</span>
+        </h1>
+
+        <p class="hero-sub is-visible" data-reveal>
+            An extremely fast Ruby package and project manager, written in Rust.<br
+            />
+            Gem workflows, project tasks, and Rails commands, without the usual startup
+            drag.
+        </p>
+
+        <div class="hero-actions is-visible" data-reveal>
+            <a href={withBase("/docs/getting-started")} class="btn-solid"
+                >Get Started</a
+            >
+            <a href={withBase("/docs/benchmarks")} class="btn-ghost"
+                >Benchmarks</a
+            >
+        </div>
+
+        <div class="hero-bench is-visible" data-reveal>
+            <div class="bench-row bench-row--bundle">
+                <span class="bench-label">bundle</span>
+                <div class="bench-track">
+                    <div class="bench-fill bench-bundle"></div>
+                </div>
+                <span class="bench-num">368.24 ms</span>
+            </div>
+            <div class="bench-row bench-row--pack">
+                <span class="bench-label bench-label--pack">pack</span>
+                <div class="bench-track">
+                    <div class="bench-fill bench-pack"></div>
+                </div>
+                <span class="bench-num is-highlight">32.20 ms</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hero {
+        min-height: calc(100vh - var(--nav-h));
+        padding: calc(var(--nav-h) + var(--sp-8)) 0 var(--sp-16);
+        text-align: center;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-2);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--fg-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-full);
+        padding: var(--sp-1) var(--sp-3);
+        margin-bottom: var(--sp-8);
+    }
+
+    .hero-tag code {
+        font-size: inherit;
+    }
+
+    .hero-copy {
+        color: var(--fg-muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 2px;
+        margin-left: 4px;
+        display: flex;
+        align-items: center;
+        transition: color 150ms var(--ease);
+    }
+
+    .hero-copy:hover {
+        color: var(--fg-secondary);
+    }
+    .copy-icon {
+        width: 12px;
+        height: 12px;
+    }
+
+    .hero-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent-ruby);
+    }
+
+    .hero-h {
+        font-size: clamp(2.4rem, 4.7vw, 4.25rem);
+        font-weight: 600;
+        line-height: 1.02;
+        letter-spacing: -0.04em;
+        color: var(--fg);
+        margin-bottom: var(--sp-6);
+        max-width: none;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .hero-accent {
+        color: var(--accent-ruby-soft);
+    }
+
+    .hero-sub {
+        font-size: 0.98rem;
+        line-height: 1.72;
+        color: var(--fg-secondary);
+        max-width: 640px;
+        margin-bottom: var(--sp-12);
+        text-wrap: pretty;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: var(--sp-3);
+        margin-bottom: var(--sp-16);
+    }
+
+    .btn-solid,
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+        height: 42px;
+        border-radius: 10px;
+        font-size: var(--text-sm);
+        font-weight: 500;
+    }
+
+    .btn-solid {
+        color: var(--accent-fg);
+        background: var(--accent);
+    }
+
+    .btn-solid:hover {
+        opacity: 0.88;
+        text-decoration: none;
+    }
+
+    .btn-ghost {
+        color: var(--fg-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+        color: var(--fg);
+        border-color: var(--border-hover);
+        text-decoration: none;
+    }
+
+    .hero-bench {
+        width: 100%;
+        max-width: 420px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-3);
+    }
+
+    .bench-row {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3);
+    }
+
+    .bench-label {
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--fg-muted);
+        width: 44px;
+        text-align: right;
+    }
+
+    .bench-track {
+        flex: 1;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .bench-fill {
+        height: 100%;
+        border-radius: 2px;
+        animation: grow 1.1s var(--ease) forwards;
+    }
+
+    .bench-bundle {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.48);
+    }
+
+    .bench-pack {
+        width: 8.74%;
+        min-width: 10px;
+        background: var(--fg);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+    }
+
+    .bench-label--pack {
+        color: var(--fg);
+    }
+
+    .bench-num {
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--fg-muted);
+        width: 92px;
+        text-align: left;
+    }
+
+    .bench-num.is-highlight {
+        color: var(--fg);
+    }
+
+    @keyframes grow {
+        from {
+            width: 0;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .hero {
+            padding: calc(var(--nav-h) + var(--sp-12)) 0 var(--sp-12);
+        }
+        .hero-sub br {
+            display: none;
+        }
+        .hero-h {
+            font-size: clamp(2.6rem, 12vw, 4rem);
+            white-space: normal;
+            max-width: 11ch;
+        }
+    }
+</style>

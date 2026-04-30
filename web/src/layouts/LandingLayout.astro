@@ -1,0 +1,29 @@
+---
+import '../styles/global.css'
+import { withBase } from '../utils/base'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const { title, description = 'Fast Ruby package management for Ruby and Rails teams. Native gem workflows, project tasks, and a Rails-shaped CLI built in Rust.' } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#080808" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <title>{title}</title>
+  <link rel="icon" type="image/png" href={withBase('/logo.png')} />
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+  <slot />
+</body>
+</html>

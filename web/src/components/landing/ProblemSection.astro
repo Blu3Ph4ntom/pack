@@ -1,0 +1,155 @@
+---
+---
+
+<section class="sect" id="problem">
+  <div class="wrap">
+
+    <p class="sect-eyebrow" data-reveal>The Problem</p>
+    <h2 class="sect-heading" data-reveal>Routine package work still pays too much overhead.</h2>
+    <p class="sect-body" data-reveal>
+      CLI startup, dependency inspection, project tasking, and Rails app operations still feel like separate surfaces even when they belong to the same job.
+    </p>
+
+    <div class="symptoms" data-stagger>
+      <div class="symptom">
+        <p class="symptom-name">Slow path to first feedback</p>
+        <p class="symptom-desc">The first thing many gem commands do is pay interpreter startup and process overhead before useful work begins.</p>
+      </div>
+      <div class="symptom">
+        <p class="symptom-name">Fragmented workflow</p>
+        <p class="symptom-desc">`gem`, Bundler, project tasks, and Rails commands belong to the same job, but they still feel like separate tools.</p>
+      </div>
+      <div class="symptom">
+        <p class="symptom-name">CI and Docker churn</p>
+        <p class="symptom-desc">Repeated install work and wrapper scripts keep slowing down container builds and automation flows.</p>
+      </div>
+      <div class="symptom">
+        <p class="symptom-name">Poor observability</p>
+        <p class="symptom-desc">When lockfiles get heavy or dependency state drifts, the default toolchain rarely explains the problem quickly.</p>
+      </div>
+    </div>
+
+    <div class="issues" data-reveal>
+      <p class="issues-label">Where Pack compresses the workflow</p>
+      <div class="issues-list">
+        <div class="issue-row">
+          <span class="issue-ref">install + list + search</span>
+          <span class="issue-text">native gem-facing commands without Ruby startup on every hop</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-ref">update + exec + why</span>
+          <span class="issue-text">project dependency operations through one Rust front door</span>
+        </div>
+        <div class="issue-row">
+          <span class="issue-ref">server + console + db</span>
+          <span class="issue-text">Rails app commands kept near dependency and task workflows</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-5);
+  }
+
+  .sect-body {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    max-width: 600px;
+    line-height: 1.65;
+    margin-bottom: var(--sp-12);
+  }
+
+  .symptoms {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: var(--sp-12);
+  }
+
+  .symptom {
+    padding: var(--sp-6);
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .symptom:nth-child(2n) { border-right: none; }
+  .symptom:nth-child(3), .symptom:nth-child(4) { border-top: 1px solid var(--border); }
+
+  .symptom-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    margin-bottom: var(--sp-2);
+  }
+
+  .symptom-desc {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.55;
+  }
+
+  .issues {
+    margin-top: var(--sp-4);
+  }
+
+  .issues-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--sp-3);
+  }
+
+  .issues-list {
+    border-top: 1px solid var(--border);
+  }
+
+  .issue-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-6);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .issue-ref {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg);
+    min-width: 220px;
+    white-space: nowrap;
+  }
+
+  .issue-text {
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+  }
+
+  @media (max-width: 640px) {
+    .symptoms { grid-template-columns: 1fr; }
+    .symptom { border-right: none; }
+    .issue-row { flex-direction: column; align-items: flex-start; gap: var(--sp-1); }
+    .issue-ref { min-width: auto; }
+  }
+</style>

@@ -1,0 +1,153 @@
+---
+const exampleCode = `# Familiar gem-shaped work
+$ pack install
+$ pack list rails
+$ pack search sidekiq
+
+# Project dependency flows
+$ pack add rack-cors
+$ pack update rails
+$ pack why rack
+
+# Rails-shaped operations
+$ pack doctor
+$ pack exec rubocop
+$ pack db migrate`
+---
+
+<section class="sect" id="solution">
+  <div class="wrap">
+
+    <p class="sect-eyebrow" data-reveal>The Solution</p>
+    <h2 class="sect-heading" data-reveal>Keep the verbs. Tighten the path.</h2>
+    <p class="sect-body" data-reveal>
+      Pack keeps the commands Ruby developers already expect, then moves the hot path into Rust so dependency work, diagnostics, and Rails helpers stay close together.
+    </p>
+
+    <div class="soln-layout" data-reveal>
+      <div class="code-preview">
+        <pre><code>{exampleCode}</code></pre>
+      </div>
+
+      <div class="points" data-stagger>
+        <div class="point">
+          <p class="point-name">Native gem verbs</p>
+          <p class="point-desc">Install, list, search, inspect, and clean up through a fast native path.</p>
+        </div>
+        <div class="point">
+          <p class="point-name">Parser hot path</p>
+          <p class="point-desc">Gemfile and lockfile parsing run in microseconds in the local Criterion benches.</p>
+        </div>
+        <div class="point">
+          <p class="point-name">Project tasking</p>
+          <p class="point-desc"><code>Packfile</code> gives teams one place for repeatable dev, test, and maintenance commands.</p>
+        </div>
+        <div class="point">
+          <p class="point-name">Rails helpers</p>
+          <p class="point-desc">Server, console, test, db, assets, and Docker helpers live next to dependency work.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .sect {
+    padding: var(--sp-24) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sect-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .sect-heading {
+    font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-5);
+  }
+
+  .sect-body {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    max-width: 600px;
+    line-height: 1.65;
+    margin-bottom: var(--sp-12);
+  }
+
+  .soln-layout {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: var(--sp-10);
+    align-items: start;
+  }
+
+  .code-preview {
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-6);
+    overflow-x: auto;
+  }
+
+  .code-preview pre {
+    margin: 0;
+  }
+
+  .code-preview code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--fg);
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .points {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .point {
+    padding: var(--sp-5) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .point:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  .point-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    margin-bottom: var(--sp-1);
+  }
+
+  .point-desc {
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    line-height: 1.55;
+  }
+
+  .point-desc code {
+    font-size: var(--text-xs);
+  }
+
+  @media (max-width: 768px) {
+    .soln-layout { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .code-preview { padding: var(--sp-4); }
+    .code-preview code { font-size: var(--text-xs); }
+  }
+</style>

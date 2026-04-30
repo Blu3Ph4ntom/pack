@@ -1,4 +1,5 @@
 require "fileutils"
+require "digest"
 require "net/http"
 require "rbconfig"
 require "tempfile"
@@ -40,24 +41,72 @@ module Pack
       end
 
       def download_to(path)
-        url = download_url
+        checksum = expected_checksum_for(asset_name)
+        with_download_response(download_url) do |response|
+          Tempfile.create(["pack-rb", windows? ? ".exe" : ""], File.dirname(path)) do |tmp|
+            tmp.binmode
+            response.read_body { |chunk| tmp.write(chunk) }
+            tmp.flush
+            staged_path = tmp.path
+            tmp.close
+            verify_checksum!(staged_path, checksum)
+            FileUtils.mv(staged_path, path)
+          end
+        end
+      rescue SocketError, IOError, SystemCallError, Timeout::Error => e
+        raise Error, "failed to download pack binary: #{e.message}"
+      end
+
+      def with_download_response(url, limit = 5, &block)
+        raise Error, "too many redirects while downloading #{url}" if limit <= 0
+
         uri = URI.parse(url)
         Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
-          request = Net::HTTP::Get.new(uri.request_uri)
-          http.request(request) do |response|
-            unless response.is_a?(Net::HTTPSuccess)
-              raise Error, "download failed with HTTP #{response.code} from #{url}"
-            end
+          http.open_timeout = 15
+          http.read_timeout = 120
 
-            Tempfile.create(["pack-rb", windows? ? ".exe" : ""], File.dirname(path)) do |tmp|
-              response.read_body { |chunk| tmp.write(chunk) }
-              tmp.flush
-              FileUtils.mv(tmp.path, path)
+          request = Net::HTTP::Get.new(uri.request_uri)
+          request["User-Agent"] = "pack-rb/#{VERSION}"
+          request["Accept"] = "application/octet-stream"
+
+          http.request(request) do |response|
+            case response
+            when Net::HTTPSuccess
+              yield response
+            when Net::HTTPRedirection
+              location = response["location"]
+              raise Error, "redirect missing location for #{url}" unless location
+
+              redirected = URI.join(url, location).to_s
+              with_download_response(redirected, limit - 1, &block)
+            else
+              raise Error, "download failed with HTTP #{response.code} from #{url}"
             end
           end
         end
-      rescue SocketError, IOError, SystemCallError => e
-        raise Error, "failed to download pack binary: #{e.message}"
+      end
+
+      def expected_checksum_for(target_asset)
+        return nil if ENV["PACK_RB_SKIP_CHECKSUM"] == "1"
+
+        body = +""
+        with_download_response("#{download_base_url}/SHA256SUMS") do |response|
+          response.read_body { |chunk| body << chunk }
+        end
+
+        match = body.each_line.map(&:strip).find { |line| line.end_with?("  #{target_asset}") }
+        raise Error, "checksum entry missing for #{target_asset}" unless match
+
+        match.split(/\s+/, 2).first
+      end
+
+      def verify_checksum!(path, expected)
+        return unless expected
+
+        actual = Digest::SHA256.file(path).hexdigest
+        return if actual == expected
+
+        raise Error, "checksum mismatch for downloaded pack binary"
       end
 
       def download_url
@@ -110,7 +159,7 @@ module Pack
 
       def normalize_cpu
         case RbConfig::CONFIG["host_cpu"]
-        when "x86_64", "amd64"
+        when "x86_64", "amd64", "x64"
           "x86_64"
         when "arm64", "aarch64"
           "aarch64"
