@@ -932,8 +932,13 @@ fn run_update(gem: Option<&str>, global: bool) -> anyhow::Result<()> {
 
 fn run_upgrade(force: bool) -> anyhow::Result<()> {
     let executor = Executor::new();
+    let gem_probe = executor.exec_gem(&["--version".to_string()]);
+    let gem_available = gem_probe
+        .as_ref()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
 
-    if !executor.is_gem_available() {
+    if !gem_available {
         println!("RubyGems is unavailable; falling back to direct binary installer...");
 
         #[cfg(target_os = "windows")]

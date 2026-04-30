@@ -80,7 +80,24 @@ if (-not $expectedLine) {
 }
 
 $expected = ($expectedLine.Line -split "\s+")[0].Trim().ToLowerInvariant()
-$actual = (Get-FileHash -Algorithm SHA256 -Path $tmpExe).Hash.ToLowerInvariant()
+if (Get-Command Get-FileHash -ErrorAction SilentlyContinue) {
+  $actual = (Get-FileHash -Algorithm SHA256 -Path $tmpExe).Hash.ToLowerInvariant()
+} else {
+  $certUtilOutput = & certutil -hashfile $tmpExe SHA256 2>$null
+  if ($LASTEXITCODE -ne 0 -or -not $certUtilOutput) {
+    throw "Checksum verification failed: neither Get-FileHash nor certutil produced a SHA256 hash."
+  }
+
+  $actual = ($certUtilOutput |
+    Where-Object { $_ -match '^[0-9a-fA-F ]+$' } |
+    Select-Object -First 1)
+
+  if (-not $actual) {
+    throw "Checksum verification failed: could not parse SHA256 from certutil output."
+  }
+
+  $actual = ($actual -replace ' ', '').ToLowerInvariant()
+}
 if ($expected -ne $actual) {
   throw "Checksum verification failed."
 }
