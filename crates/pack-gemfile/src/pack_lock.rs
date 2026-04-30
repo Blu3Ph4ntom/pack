@@ -63,7 +63,7 @@ impl PackLock {
                 version: "2.0".to_string(),
                 bundler_version: Some("2.4.0".to_string()),
                 created_at: chrono_now(),
-                pack_version: "0.1.4".to_string(),
+                pack_version: "0.1.5".to_string(),
             },
             gems: HashMap::new(),
             platforms: vec![Platform {

@@ -202,6 +202,15 @@ enum Commands {
         #[arg(long)]
         force: bool,
     },
+    /// Bootstrap Ruby and Rails toolchain on this machine
+    Setup {
+        /// Also install Rails (default: true)
+        #[arg(long, default_value_t = true)]
+        rails: bool,
+        /// Force reinstall even if tools are already available
+        #[arg(long)]
+        force: bool,
+    },
     /// Explain why a gem is installed
     Why {
         #[arg(value_name = "GEM")]
@@ -352,6 +361,7 @@ fn main() {
         Some(Commands::Remove { gem, no_install }) => run_remove(&gem, no_install),
         Some(Commands::Update { gem, global }) => run_update(gem.as_deref(), global),
         Some(Commands::Upgrade { force }) => run_upgrade(force),
+        Some(Commands::Setup { rails, force }) => run_setup(rails, force),
         Some(Commands::Why { gem }) => run_why(&gem),
         Some(Commands::Generate { update, include_optional }) => run_generate(update.as_deref(), include_optional),
         Some(Commands::Lock { output }) => run_lock(output.as_deref()),
@@ -1015,6 +1025,140 @@ fn run_upgrade(force: bool) -> anyhow::Result<()> {
         Ok(())
     } else {
         Err(anyhow::anyhow!("pack upgrade failed"))
+    }
+}
+
+fn run_setup(install_rails: bool, force: bool) -> anyhow::Result<()> {
+    let executor = Executor::new();
+
+    let ruby_available = executor.is_ruby_available();
+    let gem_available = executor.exec_gem(&["--version".to_string()]).map(|o| o.status.success()).unwrap_or(false);
+
+    if ruby_available && gem_available && !force {
+        println!("Ruby toolchain already available.");
+    } else {
+        println!("Installing Ruby toolchain...");
+        install_ruby_toolchain()?;
+    }
+
+    if install_rails {
+        println!("Installing Rails...");
+        install_rails_gem()?;
+    }
+
+    println!();
+    println!("Setup completed.");
+    println!("Run `pack doctor` to verify project/runtime health.");
+    Ok(())
+}
+
+fn install_ruby_toolchain() -> anyhow::Result<()> {
+    #[cfg(target_os = "windows")]
+    {
+        // Prefer winget for unattended install.
+        let try_ids = [
+            "RubyInstallerTeam.RubyWithDevKit",
+            "RubyInstallerTeam.Ruby",
+        ];
+
+        for id in try_ids {
+            let status = Command::new("winget")
+                .args([
+                    "install",
+                    "--id",
+                    id,
+                    "--exact",
+                    "--accept-source-agreements",
+                    "--accept-package-agreements",
+                ])
+                .status();
+
+            if let Ok(s) = status {
+                if s.success() {
+                    println!("Installed Ruby via winget package `{}`.", id);
+                    return Ok(());
+                }
+            }
+        }
+
+        anyhow::bail!(
+            "Unable to install Ruby automatically with winget. Install Ruby manually from https://rubyinstaller.org/ and rerun `pack setup`."
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let status = Command::new("brew")
+            .args(["install", "ruby"])
+            .status()
+            .map_err(|e| anyhow::anyhow!("failed to run brew: {}", e))?;
+
+        if status.success() {
+            return Ok(());
+        }
+        anyhow::bail!("brew failed to install Ruby. Install Homebrew or Ruby manually, then rerun `pack setup`.");
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let installers: &[(&str, &[&str])] = &[
+            ("apt-get", &["sudo", "apt-get", "update"]),
+            ("apt-get", &["sudo", "apt-get", "install", "-y", "ruby-full", "build-essential"]),
+            ("dnf", &["sudo", "dnf", "install", "-y", "ruby", "ruby-devel", "gcc", "make"]),
+            ("pacman", &["sudo", "pacman", "-S", "--noconfirm", "ruby", "base-devel"]),
+            ("zypper", &["sudo", "zypper", "--non-interactive", "install", "ruby", "ruby-devel", "gcc", "make"]),
+        ];
+
+        // Try apt flow first.
+        if Command::new("apt-get").arg("--version").output().is_ok() {
+            let up = Command::new("sudo").args(["apt-get", "update"]).status();
+            let ins = Command::new("sudo").args(["apt-get", "install", "-y", "ruby-full", "build-essential"]).status();
+            if up.map(|s| s.success()).unwrap_or(false) && ins.map(|s| s.success()).unwrap_or(false) {
+                return Ok(());
+            }
+        }
+
+        if Command::new("dnf").arg("--version").output().is_ok() {
+            let ins = Command::new("sudo").args(["dnf", "install", "-y", "ruby", "ruby-devel", "gcc", "make"]).status();
+            if ins.map(|s| s.success()).unwrap_or(false) {
+                return Ok(());
+            }
+        }
+
+        if Command::new("pacman").arg("--version").output().is_ok() {
+            let ins = Command::new("sudo").args(["pacman", "-S", "--noconfirm", "ruby", "base-devel"]).status();
+            if ins.map(|s| s.success()).unwrap_or(false) {
+                return Ok(());
+            }
+        }
+
+        if Command::new("zypper").arg("--version").output().is_ok() {
+            let ins = Command::new("sudo").args(["zypper", "--non-interactive", "install", "ruby", "ruby-devel", "gcc", "make"]).status();
+            if ins.map(|s| s.success()).unwrap_or(false) {
+                return Ok(());
+            }
+        }
+
+        let _ = installers; // keep list documented for maintenance.
+        anyhow::bail!("Unable to install Ruby automatically on this Linux distribution. Install Ruby manually, then rerun `pack setup`.");
+    }
+}
+
+fn install_rails_gem() -> anyhow::Result<()> {
+    let output = Command::new("ruby")
+        .args(["-S", "gem", "install", "rails", "--no-document"])
+        .output()
+        .map_err(|e| anyhow::anyhow!("failed to run gem install rails: {}", e))?;
+
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!(
+            "rails installation failed. Ensure Ruby is on PATH, then retry `pack setup --rails`."
+        ))
     }
 }
 
