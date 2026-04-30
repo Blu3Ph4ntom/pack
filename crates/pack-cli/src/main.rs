@@ -4,7 +4,7 @@ use pack_core::{GemName, Project, RubyEnvironment};
 use pack_gemfile::{add_gem, find_dependency_path, load_lockfile, remove_gem};
 use pack_exec::{Executor, OutputFormat};
 use pack_registry::native::NativeGemManager;
-use std::io::Write;
+use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::Command;
 use log::{info, error};
@@ -1312,10 +1312,31 @@ fn run_new(name: &str, skip_bundle: bool, skip_lock: bool, docker: bool, databas
     println!();
 
     // Run rails new and surface full diagnostics.
-    let output = Command::new("rails")
-        .args(&args)
-        .output()
-        .map_err(|e| anyhow::anyhow!("failed to execute `rails new` (is Rails installed and on PATH?): {}", e))?;
+    // On Windows, RubyGems bin may be installed but not present on PATH.
+    // In that case, retry through `ruby -S rails ...`.
+    let output = match Command::new("rails").args(&args).output() {
+        Ok(output) => output,
+        Err(e) if e.kind() == ErrorKind::NotFound => {
+            Command::new("ruby")
+                .arg("-S")
+                .arg("rails")
+                .args(&args)
+                .output()
+                .map_err(|ruby_err| {
+                    anyhow::anyhow!(
+                        "failed to execute `rails new` (is Rails installed and on PATH?): {}. fallback `ruby -S rails` also failed: {}",
+                        e,
+                        ruby_err
+                    )
+                })?
+        }
+        Err(e) => {
+            return Err(anyhow::anyhow!(
+                "failed to execute `rails new` (is Rails installed and on PATH?): {}",
+                e
+            ));
+        }
+    };
 
     if !output.stdout.is_empty() {
         std::io::stdout().write_all(&output.stdout).ok();
