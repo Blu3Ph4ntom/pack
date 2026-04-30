@@ -29,7 +29,7 @@ impl Registry {
 
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Pack/0.1.9")
+                .user_agent("Pack/0.1.10")
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),
@@ -51,7 +51,7 @@ impl Registry {
     pub fn with_cache_dir(cache_dir: PathBuf) -> Self {
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Pack/0.1.9")
+                .user_agent("Pack/0.1.10")
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),
@@ -63,7 +63,7 @@ impl Registry {
     pub fn with_base_url(base_url: impl Into<String>) -> Self {
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Pack/0.1.9")
+                .user_agent("Pack/0.1.10")
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),

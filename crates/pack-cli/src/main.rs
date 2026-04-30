@@ -1462,17 +1462,24 @@ fn run_new(name: &str, skip_bundle: bool, skip_lock: bool, docker: bool, databas
     println!("Running: rails {}", args.join(" "));
     println!();
 
-    // Run rails new and surface full diagnostics.
+    // Run rails new with live output (prevents "hang" perception on long installs).
     // On Windows, RubyGems bin may be installed but not present on PATH.
     // In that case, retry through `ruby -S rails ...`.
-    let output = match Command::new("rails").args(&args).output() {
-        Ok(output) => output,
+    let status = match Command::new("rails")
+        .args(&args)
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
+        .status()
+    {
+        Ok(status) => status,
         Err(e) if e.kind() == ErrorKind::NotFound => {
             Command::new("ruby")
                 .arg("-S")
                 .arg("rails")
                 .args(&args)
-                .output()
+                .stdout(std::process::Stdio::inherit())
+                .stderr(std::process::Stdio::inherit())
+                .status()
                 .map_err(|ruby_err| {
                     anyhow::anyhow!(
                         "failed to execute `rails new` (is Rails installed and on PATH?): {}. fallback `ruby -S rails` also failed: {}",
@@ -1489,22 +1496,17 @@ fn run_new(name: &str, skip_bundle: bool, skip_lock: bool, docker: bool, databas
         }
     };
 
-    if !output.stdout.is_empty() {
-        std::io::stdout().write_all(&output.stdout).ok();
-    }
-    if !output.stderr.is_empty() {
-        std::io::stderr().write_all(&output.stderr).ok();
-    }
-
-    if !output.status.success() {
+    if !status.success() {
         anyhow::bail!(
-            "`rails new` failed with exit code {:?}. If you're bootstrapping from scratch, install Rails first: `gem install rails`.",
-            output.status.code()
+            "`rails new` failed with exit code {:?}. If this directory name conflicts (for example a folder named `rails`), use `pack new <app_name>` from its parent.",
+            status.code()
         );
     }
 
-    // Change to project directory
-    std::env::set_current_dir(name)?;
+    // Change to project directory unless generated in current directory.
+    if name != "." {
+        std::env::set_current_dir(name)?;
+    }
 
     println!();
     println!("Setting up pack...");
