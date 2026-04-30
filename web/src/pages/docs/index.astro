@@ -1,0 +1,170 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/'
+const headings = [
+  { id: 'what-pack-covers', text: 'What Pack covers', level: 2 },
+  { id: 'who-it-is-for', text: 'Who it is for', level: 2 },
+  { id: 'current-command-surface', text: 'Current command surface', level: 2 },
+  { id: 'how-to-evaluate-it', text: 'How to evaluate it', level: 2 },
+]
+---
+
+<DocsLayout title="Introduction — Pack Docs" description="What Pack is, who it is for, and what the current CLI actually ships.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
+
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Introduction</span>
+    </nav>
+
+    <h1 class="doc-h1">Introduction</h1>
+    <p class="doc-lead">Pack is a Rust-powered Ruby package manager and Rails workflow CLI for teams that want gem operations, lockfile work, and app commands to feel like one system.</p>
+
+    <section id="what-pack-covers">
+      <h2 class="doc-h2">What Pack covers</h2>
+      <p class="doc-p">Pack combines several jobs Ruby developers usually split across separate commands. It exposes native gem operations, Gemfile and lockfile tooling, task-running via <code>Packfile</code>, project diagnostics, plugin loading, and Rails-specific helper commands.</p>
+      <p class="doc-p">The product story is simple: keep the verbs, remove the drag.</p>
+    </section>
+
+    <section id="who-it-is-for">
+      <h2 class="doc-h2">Who it is for</h2>
+      <p class="doc-p">Pack is aimed at Ruby developers who spend real time in dependency management and Rails teams that want one coherent CLI for app operations. If the pain is repeated shell context switching, slow startup, or hard-to-diagnose dependency state, Pack is relevant.</p>
+    </section>
+
+    <section id="current-command-surface">
+      <h2 class="doc-h2">Current command surface</h2>
+      <ul class="doc-ul">
+        <li>Native gem-facing verbs such as <code>install</code>, <code>list</code>, <code>search</code>, <code>info</code>, <code>env</code>, <code>outdated</code>, and <code>cleanup</code>.</li>
+        <li>Gemfile editing and dependency helpers like <code>add</code>, <code>remove</code>, <code>update</code>, <code>why</code>, and <code>generate</code>.</li>
+        <li>Binary <code>pack.lock</code> generation and inspection.</li>
+        <li><code>Packfile</code>-driven task execution with <code>pack run</code> and <code>pack tasks</code>.</li>
+        <li>Rails-oriented commands such as <code>server</code>, <code>console</code>, <code>test</code>, <code>rspec</code>, <code>db</code>, <code>assets</code>, <code>cache</code>, <code>docker</code>, <code>rails</code>, and <code>rake</code>.</li>
+        <li>Wrapper-based distribution through <code>gem install pack-rb</code>, which installs the <code>pack</code> launcher.</li>
+      </ul>
+    </section>
+
+    <section id="how-to-evaluate-it">
+      <h2 class="doc-h2">How to evaluate it</h2>
+      <p class="doc-p">The fastest way to judge Pack is to install it, point it at an existing Rails app, and run the commands a team already repeats every day: <code>pack install</code>, <code>pack update</code>, <code>pack doctor</code>, <code>pack exec</code>, <code>pack server</code>, and <code>pack db migrate</code>.</p>
+      <p class="doc-p">The benchmark story in this repo is grounded in local measurements and Criterion benches, not synthetic comparison scripts.</p>
+    </section>
+
+    <div class="page-nav">
+      <div></div>
+      <a href={withBase('/docs/getting-started')}>
+        <span>Getting Started</span>
+        <span>→</span>
+      </a>
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .doc-page {
+    max-width: 760px;
+    padding: var(--sp-12) var(--sp-12);
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+
+  .breadcrumb a:hover { color: var(--fg-secondary); }
+  .bc-sep { opacity: 0.4; }
+
+  .doc-h1 {
+    font-size: clamp(2rem, 4vw, 2.9rem);
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+    margin-bottom: var(--sp-4);
+  }
+
+  .doc-lead {
+    font-size: 1.2rem;
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-12);
+    line-height: 1.75;
+    max-width: 720px;
+  }
+
+  .doc-h2 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: var(--sp-12);
+    margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+
+  .doc-p {
+    font-size: var(--text-base);
+    color: var(--fg-secondary);
+    line-height: 1.78;
+    margin-bottom: var(--sp-5);
+  }
+
+  .doc-ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: var(--sp-4) 0;
+  }
+
+  .doc-ul li {
+    padding-left: var(--sp-4);
+    position: relative;
+    color: var(--fg-secondary);
+    line-height: 1.7;
+  }
+
+  .doc-ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent-ruby);
+  }
+
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--border);
+  }
+
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    padding: 0;
+  }
+
+  .page-nav a:hover {
+    color: var(--fg);
+  }
+
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
+  }
+</style>

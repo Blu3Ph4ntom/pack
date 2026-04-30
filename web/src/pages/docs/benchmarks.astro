@@ -1,0 +1,196 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/benchmarks'
+const headings = [
+  { id: 'command-comparisons', text: 'Command comparisons', level: 2 },
+  { id: 'parser-timings', text: 'Parser timings', level: 2 },
+  { id: 'how-to-run', text: 'How to run them', level: 2 },
+]
+---
+
+<DocsLayout title="Benchmarks — Pack Docs" description="Benchmark evidence in the repository and the numbers currently used on the site.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
+
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Benchmarks</span>
+    </nav>
+
+    <h1 class="doc-h1">Benchmarks</h1>
+    <p class="doc-lead">This page only keeps numbers that were verified locally or reported directly by Criterion.</p>
+
+    <section id="command-comparisons">
+      <h2 class="doc-h2">Command comparisons</h2>
+      <div class="table">
+        <div class="row row-head"><span>Command</span><span>Pack</span><span>Comparison target</span></div>
+        <div class="row"><span>pack --version</span><span>32.20 ms</span><span>bundle --version at 368.24 ms</span></div>
+        <div class="row"><span>pack list</span><span>16.95 ms</span><span>gem list at 496.37 ms</span></div>
+      </div>
+      <p class="doc-p">These are local timings against the native Ruby commands Pack is meant to tighten in day-to-day use.</p>
+    </section>
+
+    <section id="parser-timings">
+      <h2 class="doc-h2">Parser timings</h2>
+      <div class="table">
+        <div class="row row-head"><span>Benchmark</span><span>Result</span><span>Source</span></div>
+        <div class="row"><span>Gemfile parse (100 deps)</span><span>8.67–8.86 µs</span><span>`gemfile_parse`</span></div>
+        <div class="row"><span>Lockfile parse (50 gems)</span><span>48.45–50.08 µs</span><span>`gemfile_parse`</span></div>
+        <div class="row"><span>Lockfile parse (200 gems)</span><span>91.60–117.35 µs</span><span>`lockfile_bench`</span></div>
+      </div>
+      <p class="doc-p">These are Criterion results from the parser benches in this repository, not command-for-command comparisons against Bundler or RubyGems.</p>
+    </section>
+
+    <section id="how-to-run">
+      <h2 class="doc-h2">How to run them</h2>
+      <pre class="doc-pre"><code>cargo bench
+cargo bench --bench gemfile_parse
+cargo bench --bench lockfile_bench
+python benchmarks/compare_pack.py
+./benchmarks/pack_vs_ruby.sh</code></pre>
+    </section>
+
+    <div class="page-nav">
+      <a href={withBase('/docs/rails')}>
+        <span>←</span>
+        <span>Rails Workflows</span>
+      </a>
+      <div></div>
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .doc-page {
+    max-width: 760px;
+    padding: var(--sp-12) var(--sp-12);
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+  .bc-sep { opacity: 0.4; }
+  .doc-h1 {
+    font-size: clamp(2rem, 4vw, 2.9rem);
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+    margin-bottom: var(--sp-4);
+  }
+  .doc-lead {
+    font-size: 1.2rem;
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-12);
+    line-height: 1.75;
+  }
+  .doc-h2 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: var(--sp-12);
+    margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+  .doc-ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .doc-ul li {
+    padding-left: var(--sp-4);
+    position: relative;
+    color: var(--fg-secondary);
+    line-height: 1.7;
+  }
+  .doc-ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent-bright);
+  }
+  .doc-p {
+    color: var(--fg-secondary);
+    line-height: 1.75;
+    margin-top: var(--sp-4);
+  }
+  .table {
+    border-top: 1px solid var(--border);
+    margin-bottom: var(--sp-5);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.4fr;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    color: var(--fg-secondary);
+  }
+  .row-head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  .row span:nth-child(2) { color: var(--fg); }
+  .doc-pre {
+    background: #0d1013;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--sp-5);
+    overflow-x: auto;
+    margin-bottom: var(--sp-5);
+  }
+  .doc-pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #ffdbe1;
+  }
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--border);
+  }
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    padding: 0;
+  }
+  .page-nav a:hover {
+    color: var(--fg);
+  }
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
+  }
+  @media (max-width: 720px) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+    .row-head {
+      display: none;
+    }
+  }
+</style>

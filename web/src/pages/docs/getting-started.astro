@@ -1,0 +1,186 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import DocsSidebar from '../../components/docs/DocsSidebar.astro'
+import DocsToc from '../../components/docs/DocsToc.astro'
+import Callout from '../../components/docs/Callout.astro'
+import { withBase } from '../../utils/base'
+
+const currentPage = '/docs/getting-started'
+const headings = [
+  { id: 'install-pack', text: 'Install Pack', level: 2 },
+  { id: 'existing-project', text: 'Existing Rails project', level: 2 },
+  { id: 'new-project', text: 'New Rails project', level: 2 },
+  { id: 'first-commands', text: 'First commands to run', level: 2 },
+]
+---
+
+<DocsLayout title="Getting Started — Pack Docs" description="Install Pack and start using it in existing or new Rails projects.">
+  <DocsSidebar slot="sidebar" currentPage={currentPage} />
+  <DocsToc slot="toc" headings={headings} />
+
+  <div class="doc-page">
+    <nav class="breadcrumb">
+      <a href={withBase('/docs/')}>Docs</a>
+      <span class="bc-sep">/</span>
+      <span>Getting Started</span>
+    </nav>
+
+    <h1 class="doc-h1">Getting Started</h1>
+    <p class="doc-lead">Start with an existing Rails app if possible. Pack is easiest to evaluate when it has to earn a place in a workflow Ruby developers already know.</p>
+
+    <section id="install-pack">
+      <h2 class="doc-h2">Install Pack</h2>
+      <pre class="doc-pre"><code>gem install pack-rb
+pack --help</code></pre>
+      <p class="doc-p">The primary install path is the RubyGems wrapper gem. It installs a <code>pack</code> launcher and downloads the matching release binary on first run.</p>
+      <Callout type="note">
+        <p><code>pack-rb</code> is the RubyGems package name because <code>pack</code> is already taken on RubyGems.org.</p>
+      </Callout>
+      <pre class="doc-pre"><code>cargo install --path crates/pack-cli</code></pre>
+      <p class="doc-p">Source install still works and remains the simplest contributor path.</p>
+    </section>
+
+    <section id="existing-project">
+      <h2 class="doc-h2">Add Pack to an existing Rails project</h2>
+      <pre class="doc-pre"><code>pack init
+pack doctor
+pack install
+pack lock
+pack server</code></pre>
+      <Callout type="note">
+        <p><code>pack init</code> generates Pack-specific helper files, can produce Docker support, and prepares the project for Pack-driven workflows.</p>
+      </Callout>
+    </section>
+
+    <section id="new-project">
+      <h2 class="doc-h2">Create a new Rails project</h2>
+      <pre class="doc-pre"><code>pack new myapp --docker --database postgresql
+cd myapp
+pack install
+pack server</code></pre>
+      <p class="doc-p">Pack exposes a dedicated <code>new</code> command intended to wrap Rails project creation and layer Pack-specific setup on top.</p>
+    </section>
+
+    <section id="first-commands">
+      <h2 class="doc-h2">First commands to run</h2>
+      <ul class="doc-ul">
+        <li><code>pack doctor</code> checks Gemfile presence, Ruby tooling, cache directories, installed gems, and Rails-specific issues.</li>
+        <li><code>pack list</code>, <code>pack search</code>, and <code>pack info</code> let you validate the gem-facing path immediately.</li>
+        <li><code>pack run</code> and <code>pack tasks</code> expose Packfile-managed project commands.</li>
+        <li><code>pack console</code>, <code>pack test</code>, and <code>pack db migrate</code> prove the Rails-facing workflow story.</li>
+        <li><code>pack update --global</code> updates globally installed gems, and <code>pack upgrade</code> refreshes the Pack wrapper install itself.</li>
+      </ul>
+    </section>
+
+    <div class="page-nav">
+      <a href={withBase('/docs/')}>
+        <span>←</span>
+        <span>Introduction</span>
+      </a>
+      <a href={withBase('/docs/commands')}>
+        <span>Commands</span>
+        <span>→</span>
+      </a>
+    </div>
+  </div>
+</DocsLayout>
+
+<style>
+  .doc-page {
+    max-width: 680px;
+    padding: var(--sp-12) var(--sp-10);
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-8);
+  }
+  .bc-sep { opacity: 0.4; }
+  .doc-h1 {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--sp-3);
+  }
+  .doc-lead {
+    font-size: var(--text-lg);
+    color: var(--fg-secondary);
+    margin-bottom: var(--sp-10);
+    line-height: 1.65;
+  }
+  .doc-h2 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: var(--sp-12);
+    margin-bottom: var(--sp-4);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--border);
+  }
+  .doc-p {
+    color: var(--fg-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-4);
+  }
+  .doc-pre {
+    background: #0d1013;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: var(--sp-5);
+    overflow-x: auto;
+    margin-bottom: var(--sp-5);
+  }
+  .doc-pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--fg);
+  }
+  .doc-ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .doc-ul li {
+    padding-left: var(--sp-4);
+    position: relative;
+    color: var(--fg-secondary);
+    line-height: 1.7;
+  }
+  .doc-ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--fg-muted);
+  }
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--sp-16);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--border);
+  }
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-sm);
+    color: var(--fg-secondary);
+    padding: 0;
+  }
+  .page-nav a:hover {
+    color: var(--fg);
+  }
+  @media (max-width: 960px) {
+    .doc-page {
+      padding: var(--sp-8) var(--sp-5);
+    }
+  }
+</style>
