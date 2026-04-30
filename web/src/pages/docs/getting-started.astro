@@ -43,17 +43,31 @@ pack --help</code></pre>
     <section id="install-options">
       <h2 class="doc-h2">All installation options</h2>
       <p class="doc-p">Pack can be installed directly as a binary with checksum verification, or through the RubyGems wrapper:</p>
-      <pre class="doc-pre"><code># Linux / macOS direct binary installer
-curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash
+      <div class="install-grid">
+        <article class="install-card">
+          <p class="install-kicker">Linux / macOS</p>
+          <p class="install-title">Direct binary installer</p>
+          <pre class="doc-pre"><code>curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash</code></pre>
+        </article>
 
-# Windows PowerShell direct binary installer
-powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex"
+        <article class="install-card">
+          <p class="install-kicker">Windows PowerShell</p>
+          <p class="install-title">Direct binary installer</p>
+          <pre class="doc-pre"><code>powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex"</code></pre>
+        </article>
 
-# RubyGems wrapper (downloads platform binary on first run)
-gem install pack-rb
+        <article class="install-card">
+          <p class="install-kicker">RubyGems wrapper</p>
+          <p class="install-title">Portable wrapper install</p>
+          <pre class="doc-pre"><code>gem install pack-rb</code></pre>
+        </article>
 
-# Source install (contributors)
-cargo install --path crates/pack-cli</code></pre>
+        <article class="install-card">
+          <p class="install-kicker">Contributors</p>
+          <p class="install-title">Source install</p>
+          <pre class="doc-pre"><code>cargo install --path crates/pack-cli</code></pre>
+        </article>
+      </div>
       <p class="doc-p">The shell and PowerShell installers do not require Ruby. They install the Pack binary directly into <code>~/.local/bin</code> (or the path in <code>PACK_INSTALL_DIR</code>).</p>
       <p class="doc-p">Set <code>PACK_VERSION</code> to pin a specific release version in either installer script.</p>
     </section>
@@ -158,6 +172,37 @@ pack server</code></pre>
     border: none;
     padding: 0;
     color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .install-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-5);
+  }
+  .install-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-subtle);
+    padding: var(--sp-4);
+  }
+  .install-kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin-bottom: var(--sp-2);
+  }
+  .install-title {
+    font-size: var(--text-sm);
+    color: var(--fg);
+    margin-bottom: var(--sp-3);
+  }
+  .install-card .doc-pre {
+    margin-bottom: 0;
+    background: #0b0f14;
   }
   .doc-ul {
     list-style: none;

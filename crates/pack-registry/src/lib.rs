@@ -130,6 +130,13 @@ impl Registry {
             .await
             .map_err(|e| PackError::Registry(format!("versions failed: {}", e)))?;
 
+        if !resp.status().is_success() {
+            return Err(PackError::Registry(format!(
+                "versions request failed with HTTP {}",
+                resp.status()
+            )));
+        }
+
         #[derive(Deserialize)]
         struct VersionRecord {
             number: String,
@@ -139,12 +146,19 @@ impl Registry {
             created: String,
         }
 
-        let versions: Vec<VersionRecord> = resp
-            .json()
+        let body = resp
+            .text()
             .await
-            .map_err(|e| PackError::Registry(format!("failed to parse versions: {}", e)))?;
+            .map_err(|e| PackError::Registry(format!("failed to read versions response: {}", e)))?;
 
-        Ok(versions.into_iter().map(|v| GemVersion(v.number)).collect())
+        if let Ok(versions) = serde_json::from_str::<Vec<VersionRecord>>(&body) {
+            return Ok(versions.into_iter().map(|v| GemVersion(v.number)).collect());
+        }
+
+        // Fallback: some mirrors/proxies return a different payload for versions.
+        // Use the gem info endpoint to at least resolve the latest version.
+        let latest = self.info(name).await?;
+        Ok(vec![latest.version])
     }
 
     /// Get latest gem info
@@ -232,7 +246,7 @@ impl Registry {
     /// Download a gem to local cache
     pub async fn download(&self, name: &GemName, version: &GemVersion) -> PackResult<PathBuf> {
         let gem_file = format!("{}-{}.gem", name.0, version.0);
-        let url = format!("{}/downloads/{}", name.0, version.0);
+        let url = format!("{}/downloads/{}", self.base_url, gem_file);
 
         // Check if already cached
         let cache_path = self.cache_dir.join("gems").join(&gem_file);

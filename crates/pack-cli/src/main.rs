@@ -833,34 +833,81 @@ fn run_remove(gem: &str, no_install: bool) -> anyhow::Result<()> {
 fn run_update(gem: Option<&str>, global: bool) -> anyhow::Result<()> {
     if global {
         let executor = Executor::new();
-        let mut args = vec!["update".to_string()];
-        if let Some(g) = gem {
-            args.push(g.to_string());
+        if executor.is_gem_available() {
+            let mut args = vec!["update".to_string()];
+            if let Some(g) = gem {
+                args.push(g.to_string());
+            }
+
+            println!(
+                "Updating {}globally installed gems...",
+                gem.map(|_| "selected ").unwrap_or("")
+            );
+
+            let output = executor.exec_gem(&args)
+                .map_err(|e| anyhow::anyhow!("failed to run gem update: {}", e))?;
+
+            std::io::stdout().write_all(&output.stdout).ok();
+            std::io::stderr().write_all(&output.stderr).ok();
+
+            if output.status.success() {
+                println!("Done.");
+                return Ok(());
+            }
+
+            return Err(anyhow::anyhow!("gem update failed"));
         }
 
-        println!(
-            "Updating {}globally installed gems...",
-            gem.map(|_| "selected ").unwrap_or("")
-        );
-
-        let output = executor.exec_gem(&args)
-            .map_err(|e| anyhow::anyhow!("failed to run gem update: {}", e))?;
-
-        std::io::stdout().write_all(&output.stdout).ok();
-        std::io::stderr().write_all(&output.stderr).ok();
-
-        if output.status.success() {
+        println!("RubyGems is unavailable; falling back to native global update path...");
+        let native = NativeGemManager::new();
+        if let Some(g) = gem {
+            let result = native.install(g, None)
+                .map_err(|e| anyhow::anyhow!("native global update failed for {}: {}", g, e))?;
+            println!("{}", result);
             println!("Done.");
             return Ok(());
         }
 
-        return Err(anyhow::anyhow!("gem update failed"));
+        let outdated = native.outdated()
+            .map_err(|e| anyhow::anyhow!("failed to enumerate outdated gems: {}", e))?;
+        if outdated.is_empty() {
+            println!("No outdated gems found in native cache.");
+            return Ok(());
+        }
+
+        let mut updated = 0usize;
+        for item in outdated {
+            match native.install(item.name_str(), None) {
+                Ok(msg) => {
+                    println!("{}", msg);
+                    updated += 1;
+                }
+                Err(e) => eprintln!("warning: failed to update {}: {}", item.name_str(), e),
+            }
+        }
+        println!("Done. Updated {} gem(s).", updated);
+        return Ok(());
     }
 
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
     info!("Updating gems");
     println!("Updating gems...");
+
+    if !Executor::new().is_bundle_available() {
+        if let Some(g) = gem {
+            println!("Bundler is unavailable; falling back to native update for {}...", g);
+            let native = NativeGemManager::new();
+            let result = native.install(g, None)
+                .map_err(|e| anyhow::anyhow!("native project update failed for {}: {}", g, e))?;
+            println!("{}", result);
+            println!("Note: this updates native cache; Gemfile.lock is not rewritten in fallback mode.");
+            return Ok(());
+        }
+        return Err(anyhow::anyhow!(
+            "bundle is unavailable. For project-wide update install Bundler, or run `pack update <gem>`."
+        ));
+    }
 
     let mut cmd = Command::new("bundle");
     cmd.arg("update");
@@ -887,8 +934,49 @@ fn run_upgrade(force: bool) -> anyhow::Result<()> {
     let executor = Executor::new();
 
     if !executor.is_gem_available() {
+        println!("RubyGems is unavailable; falling back to direct binary installer...");
+
+        #[cfg(target_os = "windows")]
+        let mut cmd = {
+            let mut c = Command::new("powershell");
+            c.args([
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex",
+            ]);
+            c
+        };
+
+        #[cfg(not(target_os = "windows"))]
+        let mut cmd = {
+            let mut c = Command::new("sh");
+            c.args([
+                "-c",
+                "curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash",
+            ]);
+            c
+        };
+
+        if force {
+            cmd.env("PACK_FORCE", "1");
+        }
+
+        let output = cmd
+            .output()
+            .map_err(|e| anyhow::anyhow!("failed to run direct installer: {}", e))?;
+
+        std::io::stdout().write_all(&output.stdout).ok();
+        std::io::stderr().write_all(&output.stderr).ok();
+
+        if output.status.success() {
+            println!("Pack upgrade completed via direct installer.");
+            return Ok(());
+        }
+
         return Err(anyhow::anyhow!(
-            "RubyGems is not available. Install Ruby first, then run `gem install pack-rb`."
+            "pack upgrade failed in direct installer mode. If this repository is private, set GITHUB_TOKEN and retry, or run `gem install pack-rb`."
         ));
     }
 

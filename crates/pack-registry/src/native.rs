@@ -12,6 +12,7 @@
 use pack_core::{GemName, GemVersion, PackError, PackResult};
 use crate::{Registry, GemInfo, GemSearchResult};
 use std::path::PathBuf;
+use std::time::Duration;
 
 pub struct NativeGemManager {
     registry: Registry,
@@ -145,9 +146,18 @@ impl NativeGemManager {
         let extracted_dir = self.cache_dir.join("extracted").join(format!("{}-{}", name.0, version.0));
         std::fs::create_dir_all(&extracted_dir)?;
 
-        // Simple copy for now
+        // Simple copy for now; retry around transient Windows file locks.
         let dest = extracted_dir.join(format!("{}-{}.gem", name.0, version.0));
-        std::fs::copy(gem_path, &dest)?;
+        for attempt in 0..3 {
+            if let Err(e) = std::fs::copy(gem_path, &dest) {
+                if attempt == 2 {
+                    return Err(PackError::Io(e));
+                }
+                std::thread::sleep(Duration::from_millis(120 * (attempt + 1) as u64));
+                continue;
+            }
+            break;
+        }
 
         // Create bin symlinks
         let bin_dir = self.gem_home.join("bin");
