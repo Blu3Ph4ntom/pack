@@ -104,7 +104,17 @@ if ($expected -ne $actual) {
 
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 $dest = Join-Path $InstallDir "pack.exe"
-Move-Item -Force -Path $tmpExe -Destination $dest
+try {
+  Move-Item -Force -Path $tmpExe -Destination $dest
+} catch {
+  # Common on Windows during self-upgrade: currently running pack.exe is locked.
+  $staged = "$dest.new"
+  Move-Item -Force -Path $tmpExe -Destination $staged
+  Write-Host "pack.exe is currently in use; staged update at $staged"
+  Write-Host "Close running Pack processes, then run:"
+  Write-Host "  Move-Item -Force '$staged' '$dest'"
+  $dest = $staged
+}
 Remove-Item -Force -ErrorAction SilentlyContinue $tmpSums
 
 Write-Host "Pack installed to $dest"
