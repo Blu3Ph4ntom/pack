@@ -26,7 +26,9 @@ jobs:
 
       - name: Build pack-rb gem
         working-directory: gems/pack-rb
-        run: gem build pack-rb.gemspec
+        run: |
+          chmod +x exe/pack
+          gem build pack-rb.gemspec
 
   build-binaries:
     needs: verify
@@ -107,7 +109,9 @@ jobs:
 
       - name: Build gem
         working-directory: gems/pack-rb
-        run: gem build pack-rb.gemspec
+        run: |
+          chmod +x exe/pack
+          gem build pack-rb.gemspec
 
       - name: Push gem to RubyGems.org
         working-directory: gems/pack-rb
