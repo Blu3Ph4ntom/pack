@@ -110,8 +110,32 @@ try {
   # Common on Windows during self-upgrade: currently running pack.exe is locked.
   $staged = "$dest.new"
   Move-Item -Force -Path $tmpExe -Destination $staged
+  $updaterScript = Join-Path $env:TEMP "pack-self-replace-$Version.ps1"
+  $updaterContent = @"
+`$ErrorActionPreference = 'SilentlyContinue'
+`$src = '$staged'
+`$dst = '$dest'
+for (`$i = 0; `$i -lt 240; `$i++) {
+  try {
+    if (Test-Path `$src) {
+      Move-Item -Force -Path `$src -Destination `$dst
+      if (Test-Path `$dst) { exit 0 }
+    }
+  } catch {}
+  Start-Sleep -Milliseconds 500
+}
+exit 1
+"@
+  Set-Content -Path $updaterScript -Value $updaterContent -Encoding UTF8
+  Start-Process -FilePath "powershell" -WindowStyle Hidden -ArgumentList @(
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-File", $updaterScript
+  ) | Out-Null
+
   Write-Host "pack.exe is currently in use; staged update at $staged"
-  Write-Host "Close running Pack processes, then run:"
+  Write-Host "A background updater was started and will replace pack.exe automatically once this process exits."
+  Write-Host "If replacement does not happen within ~2 minutes, run:"
   Write-Host "  Move-Item -Force '$staged' '$dest'"
   $dest = $staged
 }
