@@ -86,6 +86,11 @@ impl Executor {
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
+            || Command::new("ruby")
+                .args(["-S", "gem", "--version"])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
     }
 
     pub fn is_bundle_available(&self) -> bool {
@@ -104,10 +109,24 @@ impl Executor {
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
 
-        let output = cmd.output()
-            .map_err(|e| pack_core::PackError::Exec(format!("failed to execute gem: {}", e)))?;
-
-        Ok(output)
+        match cmd.output() {
+            Ok(output) => Ok(output),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                let mut fallback = Command::new("ruby");
+                fallback.arg("-S").arg("gem").args(args);
+                fallback.envs(self.gem_env());
+                fallback.stdout(Stdio::piped());
+                fallback.stderr(Stdio::piped());
+                fallback.output()
+                    .map_err(|fallback_err| {
+                        pack_core::PackError::Exec(format!(
+                            "failed to execute gem: {}. fallback `ruby -S gem` also failed: {}",
+                            e, fallback_err
+                        ))
+                    })
+            }
+            Err(e) => Err(pack_core::PackError::Exec(format!("failed to execute gem: {}", e))),
+        }
     }
 
     /// Execute a command directly (like `bundle install` or `bundle exec`)
@@ -268,9 +287,7 @@ impl Executor {
     pub fn gem_home(&self) -> Option<String> {
         self.gem_home.clone()
             .or_else(|| {
-                Command::new("gem")
-                    .args(["env", "GEM_HOME"])
-                    .output()
+                self.exec_gem(&["env".to_string(), "GEM_HOME".to_string()])
                     .ok()
                     .filter(|o| o.status.success())
                     .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
@@ -280,9 +297,7 @@ impl Executor {
     pub fn gem_path(&self) -> Option<String> {
         self.gem_path.clone()
             .or_else(|| {
-                Command::new("gem")
-                    .args(["env", "GEM_PATH"])
-                    .output()
+                self.exec_gem(&["env".to_string(), "GEM_PATH".to_string()])
                     .ok()
                     .filter(|o| o.status.success())
                     .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
