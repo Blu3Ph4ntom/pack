@@ -1057,6 +1057,13 @@ fn install_ruby_toolchain() -> anyhow::Result<()> {
     {
         // Prefer winget for unattended install.
         let try_ids = [
+            "RubyInstallerTeam.RubyWithDevKit.3.4",
+            "RubyInstallerTeam.Ruby.3.4",
+            "RubyInstallerTeam.RubyWithDevKit.3.3",
+            "RubyInstallerTeam.Ruby.3.3",
+            "RubyInstallerTeam.RubyWithDevKit.3.2",
+            "RubyInstallerTeam.Ruby.3.2",
+            // legacy fallback IDs (if package naming changes again)
             "RubyInstallerTeam.RubyWithDevKit",
             "RubyInstallerTeam.Ruby",
         ];

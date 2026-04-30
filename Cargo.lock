@@ -1049,7 +1049,7 @@ checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "pack-cache"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "directories",
  "pack-core",
@@ -1060,7 +1060,7 @@ dependencies = [
 
 [[package]]
 name = "pack-cli"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "clap",
@@ -1077,7 +1077,7 @@ dependencies = [
 
 [[package]]
 name = "pack-core"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "serde",
  "thiserror",
@@ -1085,7 +1085,7 @@ dependencies = [
 
 [[package]]
 name = "pack-exec"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "clap",
  "pack-core",
@@ -1096,7 +1096,7 @@ dependencies = [
 
 [[package]]
 name = "pack-gemfile"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "criterion",
  "pack-core",
@@ -1108,7 +1108,7 @@ dependencies = [
 
 [[package]]
 name = "pack-installer"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "log",
  "pack-cache",
@@ -1122,7 +1122,7 @@ dependencies = [
 
 [[package]]
 name = "pack-registry"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "pack-core",
  "reqwest",
@@ -1134,7 +1134,7 @@ dependencies = [
 
 [[package]]
 name = "pack-resolver"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "pack-core",
  "thiserror",
