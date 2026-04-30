@@ -10,7 +10,21 @@ It keeps common gem-facing commands close together, adds project and Rails helpe
 
 ## Install
 
-### RubyGems
+### Direct binary (no Ruby required)
+
+```bash
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash
+```
+
+```powershell
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex"
+```
+
+Both installers verify the binary against `SHA256SUMS` from the GitHub release.
+
+### RubyGems wrapper
 
 ```bash
 gem install pack-rb
@@ -18,6 +32,8 @@ pack --help
 ```
 
 `pack-rb` installs the `pack` launcher. On first run it downloads the matching Pack binary for the current platform from GitHub Releases and verifies it against `SHA256SUMS`.
+
+`gem install pack-rb` is effectively the last `gem` command you need for installing Pack itself.
 
 ### From source
 

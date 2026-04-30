@@ -42,16 +42,16 @@ const headings = [
     <section id="bundler-adjacent">
       <h2 class="doc-h2">Project dependency flows</h2>
       <div class="command-list">
-        <div class="command-row"><code>pack install</code><p>Run the project install path when no specific gem is supplied.</p></div>
+        <div class="command-row"><code>pack install</code><p>Run the project install path when no specific gem is supplied (currently shells out to <code>bundle install</code>).</p></div>
         <div class="command-row"><code>pack exec rails console</code><p>Run gem binaries from the same front door.</p></div>
         <div class="command-row"><code>pack add rails</code><p>Add a dependency to the Gemfile.</p></div>
         <div class="command-row"><code>pack remove rails</code><p>Remove a dependency from the Gemfile.</p></div>
-        <div class="command-row"><code>pack update</code><p>Update all or one dependency in the current project.</p></div>
-        <div class="command-row"><code>pack update --global</code><p>Update globally installed gems through RubyGems.</p></div>
+        <div class="command-row"><code>pack update</code><p>Update all or one dependency in the current project (currently shells out to <code>bundle update</code>).</p></div>
+        <div class="command-row"><code>pack update --global</code><p>Update globally installed gems through RubyGems (<code>gem update</code> path).</p></div>
         <div class="command-row"><code>pack generate</code><p>Generate or update Gemfile.lock.</p></div>
         <div class="command-row"><code>pack why rack</code><p>Trace why a gem appears in the dependency tree.</p></div>
         <div class="command-row"><code>pack lock</code><p>Write a binary <code>pack.lock</code>.</p></div>
-        <div class="command-row"><code>pack upgrade</code><p>Upgrade the Pack wrapper install itself via RubyGems.</p></div>
+        <div class="command-row"><code>pack upgrade</code><p>Upgrade the Pack wrapper install itself via RubyGems. Requires a Ruby/Gem environment.</p></div>
       </div>
     </section>
 

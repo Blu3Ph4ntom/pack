@@ -8,6 +8,7 @@ import { withBase } from '../../utils/base'
 const currentPage = '/docs/getting-started'
 const headings = [
   { id: 'install-pack', text: 'Install Pack', level: 2 },
+  { id: 'install-options', text: 'All installation options', level: 2 },
   { id: 'existing-project', text: 'Existing Rails project', level: 2 },
   { id: 'new-project', text: 'New Rails project', level: 2 },
   { id: 'first-commands', text: 'First commands to run', level: 2 },
@@ -32,12 +33,29 @@ const headings = [
       <h2 class="doc-h2">Install Pack</h2>
       <pre class="doc-pre"><code>gem install pack-rb
 pack --help</code></pre>
+      <p class="doc-p"><strong><code>gem install pack-rb</code> — the last <code>gem</code> command you should need for installing Pack itself.</strong></p>
       <p class="doc-p">The primary install path is the RubyGems wrapper gem. It installs a <code>pack</code> launcher and downloads the matching release binary on first run.</p>
       <Callout type="note">
         <p><code>pack-rb</code> is the RubyGems package name because <code>pack</code> is already taken on RubyGems.org.</p>
       </Callout>
-      <pre class="doc-pre"><code>cargo install --path crates/pack-cli</code></pre>
-      <p class="doc-p">Source install still works and remains the simplest contributor path.</p>
+    </section>
+
+    <section id="install-options">
+      <h2 class="doc-h2">All installation options</h2>
+      <p class="doc-p">Pack can be installed directly as a binary with checksum verification, or through the RubyGems wrapper:</p>
+      <pre class="doc-pre"><code># Linux / macOS direct binary installer
+curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash
+
+# Windows PowerShell direct binary installer
+powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex"
+
+# RubyGems wrapper (downloads platform binary on first run)
+gem install pack-rb
+
+# Source install (contributors)
+cargo install --path crates/pack-cli</code></pre>
+      <p class="doc-p">The shell and PowerShell installers do not require Ruby. They install the Pack binary directly into <code>~/.local/bin</code> (or the path in <code>PACK_INSTALL_DIR</code>).</p>
+      <p class="doc-p">Set <code>PACK_VERSION</code> to pin a specific release version in either installer script.</p>
     </section>
 
     <section id="existing-project">
@@ -68,7 +86,7 @@ pack server</code></pre>
         <li><code>pack list</code>, <code>pack search</code>, and <code>pack info</code> let you validate the gem-facing path immediately.</li>
         <li><code>pack run</code> and <code>pack tasks</code> expose Packfile-managed project commands.</li>
         <li><code>pack console</code>, <code>pack test</code>, and <code>pack db migrate</code> prove the Rails-facing workflow story.</li>
-        <li><code>pack update --global</code> updates globally installed gems, and <code>pack upgrade</code> refreshes the Pack wrapper install itself.</li>
+        <li><code>pack update --global</code> updates globally installed gems through RubyGems, and <code>pack upgrade</code> refreshes the Pack wrapper install itself (Ruby/Gem required for these two paths).</li>
       </ul>
     </section>
 
