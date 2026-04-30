@@ -44,8 +44,7 @@ import { withBase } from "../../utils/base";
         </p>
 
         <h1 class="hero-h is-visible" data-reveal>
-            Ruby package work,
-            <span class="hero-accent">tightened.</span>
+            Ruby package work, <span class="hero-accent">tightened.</span>
         </h1>
 
         <p class="hero-sub is-visible" data-reveal>
@@ -143,15 +142,15 @@ import { withBase } from "../../utils/base";
     }
 
     .hero-h {
-        font-size: clamp(2.2rem, 3.95vw, 3.8rem);
+        font-size: clamp(2rem, 3.5vw, 3.35rem);
         font-weight: 600;
-        line-height: 1.02;
+        line-height: 1.08;
         letter-spacing: -0.04em;
         color: var(--fg);
         margin-bottom: var(--sp-6);
         max-width: none;
         white-space: nowrap;
-        display: inline-block;
+        display: block;
     }
 
     .hero-accent {
@@ -223,7 +222,7 @@ import { withBase } from "../../utils/base";
     .bench-label {
         font-family: var(--font-mono);
         font-size: var(--text-xs);
-        color: var(--fg-muted);
+        color: rgba(241, 236, 236, 0.72);
         width: 44px;
         text-align: right;
     }
@@ -243,18 +242,19 @@ import { withBase } from "../../utils/base";
 
     .bench-bundle {
         width: 100%;
-        background: rgba(255, 255, 255, 0.48);
+        background: rgba(255, 255, 255, 0.52);
     }
 
     .bench-pack {
         width: 8.74%;
-        min-width: 28px;
+        min-width: 0;
         background: var(--fg);
         box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
     }
 
     .bench-label--pack {
         color: var(--fg);
+        opacity: 1;
     }
 
     .bench-num {
@@ -277,7 +277,7 @@ import { withBase } from "../../utils/base";
             display: none;
         }
         .hero-h {
-            font-size: clamp(2.6rem, 12vw, 4rem);
+            font-size: clamp(2.3rem, 11.2vw, 3.2rem);
             white-space: normal;
             max-width: 11ch;
         }

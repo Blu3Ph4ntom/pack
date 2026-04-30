@@ -4,5 +4,6 @@ const isGitHubPagesBuild = process.env.GITHUB_ACTIONS === 'true'
 
 export default defineConfig({
   site: 'https://blu3ph4ntom.github.io',
-  base: isGitHubPagesBuild ? '/pack' : '/'
+  base: isGitHubPagesBuild ? '/pack' : '/',
+  trailingSlash: 'always'
 })
