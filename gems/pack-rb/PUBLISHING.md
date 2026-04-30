@@ -6,14 +6,13 @@ As of April 30, 2026, `pack` is already taken on RubyGems.org, so the distributa
 
 ## Release flow
 
-1. Tag a release like `v0.1.0`.
+1. Tag a release like `v0.1.1`.
 2. The `release` workflow builds and uploads release assets named:
    - `pack-x86_64-unknown-linux-gnu`
    - `pack-x86_64-pc-windows-msvc.exe`
-   - `pack-x86_64-apple-darwin`
    - `pack-aarch64-apple-darwin`
 3. The same workflow publishes a `SHA256SUMS` file alongside the binaries.
-4. After the GitHub Release is live, the workflow builds `pack-rb-0.1.0.gem` and pushes it to RubyGems.org.
+4. After the GitHub Release is live, the workflow builds `pack-rb-0.1.1.gem` and pushes it to RubyGems.org.
 5. End users run:
 
    ```bash
