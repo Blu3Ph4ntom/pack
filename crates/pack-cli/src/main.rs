@@ -1078,9 +1078,22 @@ fn run_setup(install_rails: bool, force: bool) -> anyhow::Result<()> {
         install_ruby_toolchain()?;
     }
 
+    let bundler_available = is_ruby_tool_available("bundle");
+    if !bundler_available || force {
+        println!("Installing Bundler...");
+        install_bundler_gem()?;
+    } else {
+        println!("Bundler already available.");
+    }
+
     if install_rails {
-        println!("Installing Rails...");
-        install_rails_gem()?;
+        let rails_available = is_ruby_tool_available("rails");
+        if !rails_available || force {
+            println!("Installing Rails...");
+            install_rails_gem()?;
+        } else {
+            println!("Rails already available.");
+        }
     }
 
     println!();
@@ -1258,6 +1271,37 @@ fn install_rails_gem() -> anyhow::Result<()> {
             "rails installation failed. Ensure Ruby is on PATH, then retry `pack setup --rails`."
         ))
     }
+}
+
+fn install_bundler_gem() -> anyhow::Result<()> {
+    let output = Command::new("ruby")
+        .args(["-S", "gem", "install", "bundler", "--no-document"])
+        .output()
+        .map_err(|e| anyhow::anyhow!("failed to run gem install bundler: {}", e))?;
+
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!(
+            "bundler installation failed. Ensure Ruby is on PATH, then retry `pack setup`."
+        ))
+    }
+}
+
+fn is_ruby_tool_available(tool: &str) -> bool {
+    Command::new(tool)
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+        || Command::new("ruby")
+            .args(["-S", tool, "--version"])
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
 }
 
 fn run_why(gem: &str) -> anyhow::Result<()> {
@@ -1578,6 +1622,12 @@ fn run_new(
     database: Option<&str>,
     assets: Option<&str>,
 ) -> anyhow::Result<()> {
+    if !is_ruby_tool_available("rails") {
+        anyhow::bail!(
+            "Rails is not available. Run `pack setup --rails` (or `ruby -S gem install rails`) and retry."
+        );
+    }
+
     println!();
     println!("========================================");
     println!("     Creating new Rails project: {}", name);
