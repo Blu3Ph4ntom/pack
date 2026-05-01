@@ -426,7 +426,11 @@ BUNDLED WITH
         let rails_spec = specs.get(&GemName("rails".to_string())).unwrap();
         assert_eq!(rails_spec.version.0, "7.1.0");
         assert_eq!(rails_spec.dependencies.len(), 2);
-        let dep_names: Vec<_> = rails_spec.dependencies.iter().map(|d| d.0.clone()).collect();
+        let dep_names: Vec<_> = rails_spec
+            .dependencies
+            .iter()
+            .map(|d| d.0.clone())
+            .collect();
         assert!(dep_names.contains(&"actionpack".to_string()));
         assert!(dep_names.contains(&"bundler".to_string()));
     }
@@ -436,7 +440,11 @@ BUNDLED WITH
         let specs = parse_specs(TEST_LOCKFILE).unwrap();
         let actionpack_spec = specs.get(&GemName("actionpack".to_string())).unwrap();
         assert_eq!(actionpack_spec.version.0, "7.1.0");
-        let dep_names: Vec<_> = actionpack_spec.dependencies.iter().map(|d| d.0.clone()).collect();
+        let dep_names: Vec<_> = actionpack_spec
+            .dependencies
+            .iter()
+            .map(|d| d.0.clone())
+            .collect();
         assert!(dep_names.contains(&"actionview".to_string()));
         assert!(dep_names.contains(&"activesupport".to_string()));
         assert!(dep_names.contains(&"rack".to_string()));

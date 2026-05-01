@@ -1,7 +1,7 @@
 //! Plugin system for Pack extensibility.
 
 use clap::{Subcommand, ValueEnum};
-use pack_core::{PackResult, PackError::Exec};
+use pack_core::{PackError::Exec, PackResult};
 use std::collections::HashMap;
 use std::env;
 use std::fmt;
@@ -53,14 +53,18 @@ impl Plugin {
 
     pub fn is_executable(&self) -> bool {
         fs::metadata(&self.path)
-            .map(|m| m.is_file() && {
-                #[cfg(unix)]
-                {
-                    use std::os::unix::fs::PermissionsExt;
-                    m.permissions().mode() & 0o111 != 0
+            .map(|m| {
+                m.is_file() && {
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        m.permissions().mode() & 0o111 != 0
+                    }
+                    #[cfg(not(unix))]
+                    {
+                        true
+                    }
                 }
-                #[cfg(not(unix))]
-                { true }
             })
             .unwrap_or(false)
     }
@@ -105,7 +109,8 @@ impl Plugin {
         if !self.is_executable() {
             return Err(Exec(format!(
                 "plugin '{}' is not executable: {}",
-                self.name, self.path.display()
+                self.name,
+                self.path.display()
             )));
         }
 
@@ -121,7 +126,8 @@ impl Plugin {
         if !self.is_executable() {
             return Err(Exec(format!(
                 "plugin '{}' is not executable: {}",
-                self.name, self.path.display()
+                self.name,
+                self.path.display()
             )));
         }
 
@@ -134,7 +140,8 @@ impl Plugin {
             cmd.stdout(Stdio::piped());
             cmd.stderr(Stdio::piped());
 
-            let child = cmd.spawn()
+            let child = cmd
+                .spawn()
                 .map_err(|e| Exec(format!("failed to spawn plugin {}: {}", self.name, e)))?;
 
             use std::io::Write;
@@ -144,7 +151,8 @@ impl Plugin {
                     .map_err(|e| Exec(format!("failed to write to plugin stdin: {}", e)))?;
             }
 
-            child.wait_with_output()
+            child
+                .wait_with_output()
                 .map_err(|e| Exec(format!("failed to wait on plugin: {}", e)))
         } else {
             cmd.output()
@@ -282,9 +290,11 @@ impl PluginManager {
 
     fn add_default_plugin_dirs(&mut self) {
         if let Ok(home) = env::var("HOME") {
-            self.plugin_dirs.push(PathBuf::from(&home).join(".pack").join("plugins"));
+            self.plugin_dirs
+                .push(PathBuf::from(&home).join(".pack").join("plugins"));
         }
-        self.plugin_dirs.push(PathBuf::from(".pack").join("plugins"));
+        self.plugin_dirs
+            .push(PathBuf::from(".pack").join("plugins"));
         if let Ok(pack_dir) = env::var("PACK_PLUGIN_DIR") {
             self.plugin_dirs.push(PathBuf::from(pack_dir));
         }
@@ -352,7 +362,11 @@ impl PluginManager {
                 return true;
             }
             let prefixed = format!("{}:{}", plugin.name, cmd);
-            if self.plugins.values().any(|p| p.commands.iter().any(|c| c == &prefixed)) {
+            if self
+                .plugins
+                .values()
+                .any(|p| p.commands.iter().any(|c| c == &prefixed))
+            {
                 return true;
             }
         }
@@ -373,7 +387,9 @@ impl PluginManager {
     }
 
     pub fn execute_command(&self, name: &str, args: &[String]) -> PackResult<Output> {
-        let plugin = self.plugins.get(name)
+        let plugin = self
+            .plugins
+            .get(name)
             .ok_or_else(|| Exec(format!("plugin '{}' not found", name)))?;
 
         if !plugin.enabled {
@@ -384,7 +400,9 @@ impl PluginManager {
     }
 
     pub fn execute_plugin(&self, plugin_name: &str, args: &[String]) -> PackResult<Output> {
-        let plugin = self.plugins.get(plugin_name)
+        let plugin = self
+            .plugins
+            .get(plugin_name)
             .ok_or_else(|| Exec(format!("plugin '{}' not found", plugin_name)))?;
 
         if !plugin.enabled {
@@ -435,10 +453,7 @@ impl PluginManager {
                         }
                     }
 
-                    let plugin = Plugin::new(
-                        name_str.replace(".pack-plugin", ""),
-                        path.clone(),
-                    );
+                    let plugin = Plugin::new(name_str.replace(".pack-plugin", ""), path.clone());
                     loaded.push(plugin);
                 }
             }
@@ -446,7 +461,8 @@ impl PluginManager {
             if path.is_dir() {
                 let plugin_path = path.join("pack-plugin");
                 if plugin_path.exists() {
-                    let name = path.file_name()
+                    let name = path
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
                     let mut plugin = Plugin::new(name.clone(), plugin_path);
@@ -510,7 +526,9 @@ impl PluginManager {
         if !plugin.path.exists() {
             issues.push(PluginIssue::MissingFile(plugin.path.display().to_string()));
         } else if !plugin.is_executable() {
-            issues.push(PluginIssue::NotExecutable(plugin.path.display().to_string()));
+            issues.push(PluginIssue::NotExecutable(
+                plugin.path.display().to_string(),
+            ));
         }
 
         if plugin.version.is_empty() || plugin.version == "1.0.0" {
@@ -539,12 +557,15 @@ impl PluginManager {
     pub fn search(&self, pattern: Option<&str>) -> Vec<&Plugin> {
         let pattern = pattern.map(|p| p.to_lowercase());
 
-        self.plugins.values()
+        self.plugins
+            .values()
             .filter(|p| {
                 if let Some(ref pattern) = pattern {
                     p.name.to_lowercase().contains(pattern)
                         || p.description.to_lowercase().contains(pattern)
-                        || p.commands.iter().any(|c| c.to_lowercase().contains(pattern))
+                        || p.commands
+                            .iter()
+                            .any(|c| c.to_lowercase().contains(pattern))
                 } else {
                     true
                 }
@@ -570,7 +591,12 @@ impl PluginManager {
         }
     }
 
-    pub fn init_plugin(&self, name: &str, path: &Path, template: PluginTemplate) -> PackResult<Plugin> {
+    pub fn init_plugin(
+        &self,
+        name: &str,
+        path: &Path,
+        template: PluginTemplate,
+    ) -> PackResult<Plugin> {
         let plugin_path = path.join(name);
 
         fs::create_dir_all(&plugin_path)
@@ -579,7 +605,10 @@ impl PluginManager {
         match template {
             PluginTemplate::Binary => {
                 let binary_path = plugin_path.join("pack-plugin");
-                let content = format!("#!/bin/bash\n# Pack plugin: {}\n\necho 'Plugin {} initialized'\n", name, name);
+                let content = format!(
+                    "#!/bin/bash\n# Pack plugin: {}\n\necho 'Plugin {} initialized'\n",
+                    name, name
+                );
                 fs::write(&binary_path, content)
                     .map_err(|e| Exec(format!("failed to create plugin script: {}", e)))?;
 
@@ -606,7 +635,10 @@ impl PluginManager {
             }
             PluginTemplate::Script => {
                 let script_path = plugin_path.join("pack-plugin");
-                let content = format!("#!/bin/bash\n# Pack plugin: {}\n\necho 'Plugin {} initialized'\n", name, name);
+                let content = format!(
+                    "#!/bin/bash\n# Pack plugin: {}\n\necho 'Plugin {} initialized'\n",
+                    name, name
+                );
                 fs::write(&script_path, content)
                     .map_err(|e| Exec(format!("failed to create plugin script: {}", e)))?;
 
@@ -632,7 +664,10 @@ impl PluginManager {
             }
             PluginTemplate::Docker => {
                 let dockerfile_path = plugin_path.join("Dockerfile");
-                fs::write(&dockerfile_path, &format!(r#"FROM ubuntu:22.04
+                fs::write(
+                    &dockerfile_path,
+                    &format!(
+                        r#"FROM ubuntu:22.04
 LABEL maintainer="pack@plugin"
 LABEL com.pack.plugin="{}"
 
@@ -641,23 +676,35 @@ COPY pack-plugin /usr/local/bin/pack-plugin
 RUN chmod +x /usr/local/bin/pack-plugin
 
 ENTRYPOINT ["/usr/local/bin/pack-plugin"]
-"#, name))
-                    .map_err(|e| Exec(format!("failed to create Dockerfile: {}", e)))?;
+"#,
+                        name
+                    ),
+                )
+                .map_err(|e| Exec(format!("failed to create Dockerfile: {}", e)))?;
 
                 let script_path = plugin_path.join("pack-plugin");
-                let content = format!("#!/bin/bash\n# Pack plugin: {}\n\necho 'Docker plugin {} initialized'\n", name, name);
+                let content = format!(
+                    "#!/bin/bash\n# Pack plugin: {}\n\necho 'Docker plugin {} initialized'\n",
+                    name, name
+                );
                 fs::write(&script_path, content)
                     .map_err(|e| Exec(format!("failed to create plugin script: {}", e)))?;
             }
             PluginTemplate::Custom => {
                 let plugin_path_str = plugin_path.join("pack-plugin");
-                let content = format!("#!/bin/bash\n# Pack plugin: {}\n\n# Add your plugin code here\n", name);
+                let content = format!(
+                    "#!/bin/bash\n# Pack plugin: {}\n\n# Add your plugin code here\n",
+                    name
+                );
                 fs::write(&plugin_path_str, content)
                     .map_err(|e| Exec(format!("failed to create plugin script: {}", e)))?;
             }
         }
 
-        Ok(Plugin::new(name.to_string(), plugin_path.join("pack-plugin")))
+        Ok(Plugin::new(
+            name.to_string(),
+            plugin_path.join("pack-plugin"),
+        ))
     }
 
     pub fn uninstall_plugin(&mut self, name: &str, purge: bool) -> PackResult<bool> {
@@ -666,8 +713,9 @@ ENTRYPOINT ["/usr/local/bin/pack-plugin"]
                 let plugin_dir = plugin.path.parent();
                 if let Some(dir) = plugin_dir {
                     if dir.exists() && dir.to_string_lossy().contains(".pack") {
-                        fs::remove_dir_all(dir)
-                            .map_err(|e| Exec(format!("failed to remove plugin directory: {}", e)))?;
+                        fs::remove_dir_all(dir).map_err(|e| {
+                            Exec(format!("failed to remove plugin directory: {}", e))
+                        })?;
                     }
                 }
             }
@@ -720,7 +768,11 @@ impl fmt::Display for PluginIssue {
         match self {
             PluginIssue::MissingFile(path) => write!(f, "missing file: {}", path),
             PluginIssue::NotExecutable(path) => write!(f, "not executable: {}", path),
-            PluginIssue::DefaultVersion(name) => write!(f, "using default version ({}): {}", name, "consider updating"),
+            PluginIssue::DefaultVersion(name) => write!(
+                f,
+                "using default version ({}): {}",
+                name, "consider updating"
+            ),
             PluginIssue::NoDescription(name) => write!(f, "no description for plugin: {}", name),
         }
     }
@@ -837,10 +889,14 @@ mod tests {
     #[test]
     fn test_search() {
         let mut manager = PluginManager::new();
-        manager.register(Plugin::new("deploy-plugin".to_string(), PathBuf::from("/bin/true"))
-            .with_description("Deploys applications".to_string()));
-        manager.register(Plugin::new("ci-plugin".to_string(), PathBuf::from("/bin/true"))
-            .with_description("CI integration".to_string()));
+        manager.register(
+            Plugin::new("deploy-plugin".to_string(), PathBuf::from("/bin/true"))
+                .with_description("Deploys applications".to_string()),
+        );
+        manager.register(
+            Plugin::new("ci-plugin".to_string(), PathBuf::from("/bin/true"))
+                .with_description("CI integration".to_string()),
+        );
 
         let results = manager.search(Some("deploy"));
         assert_eq!(results.len(), 1);

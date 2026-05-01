@@ -1,4 +1,4 @@
-//! Native RubyGems client - no gem binary required!
+//! Native RubyGems.org registry client.
 //!
 //! Pack communicates directly with RubyGems.org API to:
 //! - Search for gems
@@ -6,8 +6,8 @@
 //! - Download and cache gems
 //! - Resolve dependencies
 //!
-//! This makes Pack a true drop-in replacement - install pack and you don't
-//! need Ruby or gem installed at all!
+//! Local gem installation still goes through RubyGems until Pack has a complete
+//! installer for specs, executables, and native extensions.
 
 pub mod native;
 
@@ -29,7 +29,7 @@ impl Registry {
 
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Pack/0.1.10")
+                .user_agent("Pack/0.1.11")
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),
@@ -51,7 +51,7 @@ impl Registry {
     pub fn with_cache_dir(cache_dir: PathBuf) -> Self {
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Pack/0.1.10")
+                .user_agent("Pack/0.1.11")
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),
@@ -63,7 +63,7 @@ impl Registry {
     pub fn with_base_url(base_url: impl Into<String>) -> Self {
         Self {
             client: reqwest::Client::builder()
-                .user_agent("Pack/0.1.10")
+                .user_agent("Pack/0.1.11")
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),
@@ -85,7 +85,11 @@ impl Registry {
     }
 
     /// Search for gems by name pattern
-    pub async fn search(&self, query: &str, limit: Option<usize>) -> PackResult<Vec<GemSearchResult>> {
+    pub async fn search(
+        &self,
+        query: &str,
+        limit: Option<usize>,
+    ) -> PackResult<Vec<GemSearchResult>> {
         let url = format!("{}/api/v1/search.json?query={}", self.base_url, query);
         let resp = self
             .client
@@ -95,7 +99,10 @@ impl Registry {
             .map_err(|e| PackError::Registry(format!("search failed: {}", e)))?;
 
         if !resp.status().is_success() {
-            return Err(PackError::Registry(format!("search failed with status: {}", resp.status())));
+            return Err(PackError::Registry(format!(
+                "search failed with status: {}",
+                resp.status()
+            )));
         }
 
         #[derive(Deserialize)]
@@ -112,12 +119,16 @@ impl Registry {
             .map_err(|e| PackError::Registry(format!("failed to parse search: {}", e)))?;
 
         let limit = limit.unwrap_or(30);
-        Ok(results.into_iter().take(limit).map(|r| GemSearchResult {
-            name: GemName(r.name),
-            version: GemVersion(r.version),
-            downloads: r.downloads.unwrap_or(0),
-            description: r.description.unwrap_or_default(),
-        }).collect())
+        Ok(results
+            .into_iter()
+            .take(limit)
+            .map(|r| GemSearchResult {
+                name: GemName(r.name),
+                version: GemVersion(r.version),
+                downloads: r.downloads.unwrap_or(0),
+                description: r.description.unwrap_or_default(),
+            })
+            .collect())
     }
 
     /// Get all versions for a gem
@@ -214,22 +225,38 @@ impl Registry {
             homepage: gem_info.homepage_uri,
             documentation: gem_info.documentation_uri,
             source_code: gem_info.source_code_uri,
-            dependencies: deps.runtime.map(|d| d.into_iter().map(|dep| DependencySpec {
-                name: GemName(dep.name),
-                requirement: dep.requirements,
-            }).collect()).unwrap_or_default(),
-            development_dependencies: deps.development.map(|d| d.into_iter().map(|dep| DependencySpec {
-                name: GemName(dep.name),
-                requirement: dep.requirements,
-            }).collect()).unwrap_or_default(),
+            dependencies: deps
+                .runtime
+                .map(|d| {
+                    d.into_iter()
+                        .map(|dep| DependencySpec {
+                            name: GemName(dep.name),
+                            requirement: dep.requirements,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            development_dependencies: deps
+                .development
+                .map(|d| {
+                    d.into_iter()
+                        .map(|dep| DependencySpec {
+                            name: GemName(dep.name),
+                            requirement: dep.requirements,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
         })
     }
 
     /// Get the gem specification (.gemspec) content
     pub async fn spec(&self, name: &GemName, version: &GemVersion) -> PackResult<String> {
         // RubyGems spec API format: /api/v1/specs/{gem_name}/{version}.gemspec
-        let url = format!("{}/api/v1/specs/{}/{}.gemspec",
-            self.base_url, name.0, version.0);
+        let url = format!(
+            "{}/api/v1/specs/{}/{}.gemspec",
+            self.base_url, name.0, version.0
+        );
 
         let resp = self
             .client
@@ -264,7 +291,8 @@ impl Registry {
 
         if !response.status().is_success() {
             return Err(PackError::Registry(format!(
-                "download failed with status: {}", response.status()
+                "download failed with status: {}",
+                response.status()
             )));
         }
 
@@ -272,7 +300,8 @@ impl Registry {
         std::fs::create_dir_all(cache_path.parent().unwrap())?;
 
         // Write to cache
-        let bytes = response.bytes()
+        let bytes = response
+            .bytes()
             .await
             .map_err(|e| PackError::Registry(format!("failed to read download: {}", e)))?;
 
@@ -343,12 +372,16 @@ impl Registry {
         // Sort by downloads descending
         results.sort_by(|a, b| b.downloads.cmp(&a.downloads));
 
-        Ok(results.into_iter().take(limit).map(|r| GemSearchResult {
-            name: GemName(r.name),
-            version: GemVersion(r.version),
-            downloads: r.downloads.unwrap_or(0),
-            description: r.description.unwrap_or_default(),
-        }).collect())
+        Ok(results
+            .into_iter()
+            .take(limit)
+            .map(|r| GemSearchResult {
+                name: GemName(r.name),
+                version: GemVersion(r.version),
+                downloads: r.downloads.unwrap_or(0),
+                description: r.description.unwrap_or_default(),
+            })
+            .collect())
     }
 }
 
@@ -461,7 +494,11 @@ pub struct CachedGem {
 // Sync versions of async methods for non-async use
 impl Registry {
     /// Search for gems (sync wrapper)
-    pub fn search_sync(&self, query: &str, limit: Option<usize>) -> PackResult<Vec<GemSearchResult>> {
+    pub fn search_sync(
+        &self,
+        query: &str,
+        limit: Option<usize>,
+    ) -> PackResult<Vec<GemSearchResult>> {
         // For synchronous use, we need to use a runtime
         // This is a simple blocking wrapper
         let rt = tokio::runtime::Runtime::new()
@@ -479,7 +516,10 @@ impl Registry {
     /// List installed gems from cache (sync, no gem binary needed)
     pub fn list_sync(&self) -> PackResult<Vec<String>> {
         let gems = self.cached_gems()?;
-        Ok(gems.into_iter().map(|g| format!("{} ({})", g.name.0, g.version.0)).collect())
+        Ok(gems
+            .into_iter()
+            .map(|g| format!("{} ({})", g.name.0, g.version.0))
+            .collect())
     }
 }
 

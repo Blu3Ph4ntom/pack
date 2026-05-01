@@ -1,8 +1,8 @@
 //! Pack core types shared across all crates.
 
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
-use serde::{Serialize, Deserialize};
 
 #[derive(Error, Debug)]
 pub enum PackError {
@@ -104,10 +104,20 @@ impl RubyEnvironment {
         std::process::Command::new("gem")
             .arg("--version")
             .output()
+            .or_else(|_| {
+                std::process::Command::new("ruby")
+                    .args(["-S", "gem", "--version"])
+                    .output()
+            })
             .ok()
             .and_then(|o| {
                 if o.status.success() {
-                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
+                    Some(
+                        String::from_utf8(o.stdout)
+                            .unwrap_or_default()
+                            .trim()
+                            .to_string(),
+                    )
                 } else {
                     None
                 }
@@ -118,10 +128,20 @@ impl RubyEnvironment {
         std::process::Command::new("bundle")
             .arg("--version")
             .output()
+            .or_else(|_| {
+                std::process::Command::new("ruby")
+                    .args(["-S", "bundle", "--version"])
+                    .output()
+            })
             .ok()
             .and_then(|o| {
                 if o.status.success() {
-                    Some(String::from_utf8(o.stdout).unwrap_or_default().trim().to_string())
+                    Some(
+                        String::from_utf8(o.stdout)
+                            .unwrap_or_default()
+                            .trim()
+                            .to_string(),
+                    )
                 } else {
                     None
                 }
@@ -134,6 +154,12 @@ impl RubyEnvironment {
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
+            || matches!(cmd, "gem" | "bundle")
+                && std::process::Command::new("ruby")
+                    .args(["-S", cmd, "--version"])
+                    .output()
+                    .map(|o| o.status.success())
+                    .unwrap_or(false)
     }
 
     pub fn has_ruby(&self) -> bool {
@@ -321,20 +347,16 @@ mod tests {
     #[test]
     fn test_install_plan() {
         let plan = InstallPlan {
-            gems_to_install: vec![
-                Dependency {
-                    name: GemName("rails".to_string()),
-                    version: Some(GemVersion("7.1.0".to_string())),
-                    group: None,
-                },
-            ],
-            cached_gems: vec![
-                Dependency {
-                    name: GemName("rake".to_string()),
-                    version: None,
-                    group: None,
-                },
-            ],
+            gems_to_install: vec![Dependency {
+                name: GemName("rails".to_string()),
+                version: Some(GemVersion("7.1.0".to_string())),
+                group: None,
+            }],
+            cached_gems: vec![Dependency {
+                name: GemName("rake".to_string()),
+                version: None,
+                group: None,
+            }],
         };
 
         assert_eq!(plan.gems_to_install.len(), 1);

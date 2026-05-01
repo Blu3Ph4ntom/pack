@@ -44,7 +44,8 @@ target/release/pack --help
 
 ## What ships today
 
-- Native gem commands for install, list, search, info, env, uninstall, outdated, and cleanup
+- RubyGems-compatible commands for install, list, env, uninstall, outdated, cleanup, and global update
+- Native RubyGems.org registry reads for search and info
 - Gemfile editing with `pack add` and `pack remove`
 - Lockfile generation with `pack generate`
 - Dependency inspection with `pack why`
@@ -52,7 +53,7 @@ target/release/pack --help
 - Rails helpers including `pack server`, `pack console`, `pack test`, `pack r-spec`, `pack db`, `pack assets`, `pack cache`, `pack rails`, and `pack rake`
 - Task execution through `Packfile`
 - `pack update` for project gems and `pack update --global` for globally installed gems
-- `pack upgrade` for upgrading the RubyGems wrapper install
+- `pack upgrade` for upgrading Pack through RubyGems or the direct binary installer
 - Plugin management through `pack plugins`
 
 ## Benchmarks
@@ -99,7 +100,7 @@ cd gems/pack-rb && gem build pack-rb.gemspec
 
 - `crates/pack-cli` — CLI entry point
 - `crates/pack-gemfile` — Gemfile and lockfile parsing
-- `crates/pack-registry` — RubyGems access
+- `crates/pack-registry` — RubyGems.org registry access
 - `crates/pack-installer` — install orchestration
 - `crates/pack-exec` — execution and plugin support
 - `gems/pack-rb` — RubyGems wrapper package

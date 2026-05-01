@@ -1,7 +1,7 @@
 //! Native gem installation - no bundler required.
 
-use pack_core::{Dependency, InstallPlan, PackError, PackResult};
 use pack_cache::{Cache, InstallReport};
+use pack_core::{Dependency, InstallPlan, PackError, PackResult};
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -65,14 +65,18 @@ impl Installer {
         Ok(report)
     }
 
-    fn install_parallel(&self, plan: &InstallPlan, installed: &mut usize, cached: &mut usize) -> PackResult<()> {
+    fn install_parallel(
+        &self,
+        plan: &InstallPlan,
+        installed: &mut usize,
+        cached: &mut usize,
+    ) -> PackResult<()> {
         use rayon::prelude::*;
 
-        let results: Vec<bool> = plan.gems_to_install
+        let results: Vec<bool> = plan
+            .gems_to_install
             .par_iter()
-            .map(|gem| {
-                self.download_gem(gem).is_ok()
-            })
+            .map(|gem| self.download_gem(gem).is_ok())
             .collect();
 
         *installed = results.iter().filter(|&&r| r).count();
@@ -80,7 +84,12 @@ impl Installer {
         Ok(())
     }
 
-    fn install_sequential(&self, plan: &InstallPlan, installed: &mut usize, cached: &mut usize) -> PackResult<()> {
+    fn install_sequential(
+        &self,
+        plan: &InstallPlan,
+        installed: &mut usize,
+        cached: &mut usize,
+    ) -> PackResult<()> {
         for gem in &plan.gems_to_install {
             match self.download_gem(gem) {
                 Ok(_) => *installed += 1,
@@ -93,7 +102,9 @@ impl Installer {
     }
 
     fn download_gem(&self, gem: &Dependency) -> PackResult<PathBuf> {
-        let version = gem.version.as_ref()
+        let version = gem
+            .version
+            .as_ref()
             .ok_or_else(|| PackError::Installer("no version specified".into()))?;
 
         let gem_path = self.cache.package_path(&gem.name.0, &version.0);
@@ -107,8 +118,7 @@ impl Installer {
 
         let url = format!(
             "https://rubygems.org/downloads/{}-{}.gem",
-            gem.name.0,
-            version.0
+            gem.name.0, version.0
         );
 
         let response = reqwest::blocking::get(&url)
@@ -121,7 +131,8 @@ impl Installer {
             )));
         }
 
-        let bytes = response.bytes()
+        let bytes = response
+            .bytes()
             .map_err(|e| PackError::Installer(format!("read failed: {}", e)))?;
 
         std::fs::create_dir_all(self.cache.packages_dir())?;
@@ -135,13 +146,17 @@ impl Installer {
     pub fn install_from_lockfile(&self, lockfile_path: &PathBuf) -> PackResult<InstallReport> {
         let lockfile = pack_gemfile::load_lockfile(lockfile_path)?;
 
-        let deps: Vec<Dependency> = lockfile.top_level.iter().filter_map(|name| {
-            lockfile.specs.get(name).map(|spec| Dependency {
-                name: name.clone(),
-                version: Some(spec.version.clone()),
-                group: None,
+        let deps: Vec<Dependency> = lockfile
+            .top_level
+            .iter()
+            .filter_map(|name| {
+                lockfile.specs.get(name).map(|spec| Dependency {
+                    name: name.clone(),
+                    version: Some(spec.version.clone()),
+                    group: None,
+                })
             })
-        }).collect();
+            .collect();
 
         let plan = InstallPlan {
             gems_to_install: deps,
@@ -218,13 +233,11 @@ mod tests {
     fn test_install_with_deps() {
         let installer = Installer::new().unwrap();
         let plan = InstallPlan {
-            gems_to_install: vec![
-                Dependency {
-                    name: GemName("rake".to_string()),
-                    version: Some(GemVersion("13.0.0".to_string())),
-                    group: None,
-                },
-            ],
+            gems_to_install: vec![Dependency {
+                name: GemName("rake".to_string()),
+                version: Some(GemVersion("13.0.0".to_string())),
+                group: None,
+            }],
             cached_gems: vec![],
         };
         let report = installer.install(&plan).unwrap();
@@ -235,6 +248,8 @@ mod tests {
     fn test_list_installed_empty() {
         let installer = Installer::new().unwrap();
         let gems = installer.list_installed().unwrap();
-        assert!(gems.iter().all(|(name, version)| !name.trim().is_empty() && !version.trim().is_empty()));
+        assert!(gems
+            .iter()
+            .all(|(name, version)| !name.trim().is_empty() && !version.trim().is_empty()));
     }
 }

@@ -1,17 +1,16 @@
-//! Command execution with proper PATH handling.
-//!
-//! Pack aims to be a drop-in replacement for both `gem` and `bundle` commands.
-//! It provides native gem installation and execution without requiring
-//! the Ruby interpreter overhead of Bundler.
+//! Command execution adapters for RubyGems/Bundler-compatible workflows.
 
 use pack_core::PackResult;
 use std::collections::HashMap;
 use std::env;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
 pub mod plugins;
-pub use plugins::{Plugin, PluginManager, PluginAction, OutputFormat, PluginTemplate, PluginOutput};
+pub use plugins::{
+    OutputFormat, Plugin, PluginAction, PluginManager, PluginOutput, PluginTemplate,
+};
 
 pub struct Executor {
     bundle_path: Option<String>,
@@ -99,6 +98,11 @@ impl Executor {
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
+            || Command::new("ruby")
+                .args(["-S", "bundle", "--version"])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
     }
 
     /// Execute a command directly (like `gem install` or `gem list`)
@@ -117,15 +121,17 @@ impl Executor {
                 fallback.envs(self.gem_env());
                 fallback.stdout(Stdio::piped());
                 fallback.stderr(Stdio::piped());
-                fallback.output()
-                    .map_err(|fallback_err| {
-                        pack_core::PackError::Exec(format!(
-                            "failed to execute gem: {}. fallback `ruby -S gem` also failed: {}",
-                            e, fallback_err
-                        ))
-                    })
+                fallback.output().map_err(|fallback_err| {
+                    pack_core::PackError::Exec(format!(
+                        "failed to execute gem: {}. fallback `ruby -S gem` also failed: {}",
+                        e, fallback_err
+                    ))
+                })
             }
-            Err(e) => Err(pack_core::PackError::Exec(format!("failed to execute gem: {}", e))),
+            Err(e) => Err(pack_core::PackError::Exec(format!(
+                "failed to execute gem: {}",
+                e
+            ))),
         }
     }
 
@@ -139,22 +145,47 @@ impl Executor {
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
 
-        let output = cmd.output()
-            .map_err(|e| pack_core::PackError::Exec(format!("failed to execute bundle: {}", e)))?;
-
-        Ok(output)
+        match cmd.output() {
+            Ok(output) => Ok(output),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                let mut fallback = Command::new("ruby");
+                fallback.arg("-S").arg("bundle").args(args);
+                if let Some(ref bp) = self.bundle_path {
+                    fallback.env("BUNDLE_PATH", bp);
+                }
+                fallback.stdout(Stdio::piped());
+                fallback.stderr(Stdio::piped());
+                fallback.output().map_err(|fallback_err| {
+                    pack_core::PackError::Exec(format!(
+                        "failed to execute bundle: {}. fallback `ruby -S bundle` also failed: {}",
+                        e, fallback_err
+                    ))
+                })
+            }
+            Err(e) => Err(pack_core::PackError::Exec(format!(
+                "failed to execute bundle: {}",
+                e
+            ))),
+        }
     }
 
     /// Execute a gem's binary directly via the installed gem path
     /// This bypasses bundle exec and runs the gem binary directly
-    pub fn exec_gem_binary(&self, gem_name: &str, bin_name: &str, args: &[String]) -> PackResult<Output> {
+    pub fn exec_gem_binary(
+        &self,
+        gem_name: &str,
+        bin_name: &str,
+        args: &[String],
+    ) -> PackResult<Output> {
         // Find the gem's bin directory
-        let gem_home = self.gem_home()
-            .ok_or_else(|| pack_core::PackError::Exec(format!("GEM_HOME not set, cannot execute {} directly", gem_name)))?;
+        let gem_home = self.gem_home().ok_or_else(|| {
+            pack_core::PackError::Exec(format!(
+                "GEM_HOME not set, cannot execute {} directly",
+                gem_name
+            ))
+        })?;
 
-        let bin_path = PathBuf::from(&gem_home)
-            .join("bin")
-            .join(bin_name);
+        let bin_path = PathBuf::from(&gem_home).join("bin").join(bin_name);
 
         // Fallback to searching in gems directory
         let gem_bin = if !bin_path.exists() {
@@ -169,14 +200,16 @@ impl Executor {
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
 
-        let output = cmd.output()
-            .map_err(|e| pack_core::PackError::Exec(format!("failed to execute {}: {}", gem_bin.display(), e)))?;
+        let output = cmd.output().map_err(|e| {
+            pack_core::PackError::Exec(format!("failed to execute {}: {}", gem_bin.display(), e))
+        })?;
 
         Ok(output)
     }
 
     fn find_gem_bin(&self, gem_name: &str, bin_name: &str) -> PackResult<PathBuf> {
-        let gem_home = self.gem_home()
+        let gem_home = self
+            .gem_home()
             .ok_or_else(|| pack_core::PackError::Exec("GEM_HOME not set".to_string()))?;
 
         // Search in gems directory
@@ -185,9 +218,11 @@ impl Executor {
         if let Ok(entries) = std::fs::read_dir(&gems_dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
-                if path.is_dir() && path.file_name()
-                    .map(|n| n.to_string_lossy().starts_with(gem_name))
-                    .unwrap_or(false)
+                if path.is_dir()
+                    && path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().starts_with(gem_name))
+                        .unwrap_or(false)
                 {
                     let bin = path.join("bin").join(bin_name);
                     if bin.exists() {
@@ -199,13 +234,20 @@ impl Executor {
 
         Err(pack_core::PackError::Exec(format!(
             "could not find binary {} for gem {} in {}",
-            bin_name, gem_name, gems_dir.display()
+            bin_name,
+            gem_name,
+            gems_dir.display()
         )))
     }
 
     /// Execute a command, preferring native execution over bundle exec when possible
     /// This is the "drop-in" mode - acts like gem/bundle but faster
-    pub fn exec(&self, cmd: &str, args: &[String], working_dir: Option<&Path>) -> PackResult<Output> {
+    pub fn exec(
+        &self,
+        cmd: &str,
+        args: &[String],
+        working_dir: Option<&Path>,
+    ) -> PackResult<Output> {
         // If BUNDLE_PATH is set and we're not doing bundle-specific operations,
         // we can execute directly
         let mut command = Command::new(cmd);
@@ -221,14 +263,20 @@ impl Executor {
         command.stdout(Stdio::piped());
         command.stderr(Stdio::piped());
 
-        let output = command.output()
+        let output = command
+            .output()
             .map_err(|e| pack_core::PackError::Exec(format!("failed to execute {}: {}", cmd, e)))?;
 
         Ok(output)
     }
 
     /// Run with bundle exec (legacy support)
-    pub fn exec_via_bundle(&self, cmd: &str, args: &[String], working_dir: Option<&Path>) -> PackResult<Output> {
+    pub fn exec_via_bundle(
+        &self,
+        cmd: &str,
+        args: &[String],
+        working_dir: Option<&Path>,
+    ) -> PackResult<Output> {
         let mut command = Command::new("bundle");
         command.arg("exec").arg(cmd).args(args);
 
@@ -244,10 +292,42 @@ impl Executor {
         command.stdout(Stdio::piped());
         command.stderr(Stdio::piped());
 
-        let output = command.output()
-            .map_err(|e| pack_core::PackError::Exec(format!("failed to execute bundle exec {}: {}", cmd, e)))?;
+        match command.output() {
+            Ok(output) => Ok(output),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                let mut fallback = Command::new("ruby");
+                fallback
+                    .arg("-S")
+                    .arg("bundle")
+                    .arg("exec")
+                    .arg(cmd)
+                    .args(args);
 
-        Ok(output)
+                if let Some(dir) = working_dir {
+                    fallback.current_dir(dir);
+                }
+
+                if let Some(ref bp) = self.bundle_path {
+                    fallback.env("BUNDLE_PATH", bp);
+                }
+
+                fallback.envs(self.gem_env());
+                fallback.stdout(Stdio::piped());
+                fallback.stderr(Stdio::piped());
+
+                fallback.output()
+                    .map_err(|fallback_err| {
+                        pack_core::PackError::Exec(format!(
+                            "failed to execute bundle exec {}: {}. fallback `ruby -S bundle exec` also failed: {}",
+                            cmd, e, fallback_err
+                        ))
+                    })
+            }
+            Err(e) => Err(pack_core::PackError::Exec(format!(
+                "failed to execute bundle exec {}: {}",
+                cmd, e
+            ))),
+        }
     }
 
     fn gem_env(&self) -> HashMap<String, String> {
@@ -266,10 +346,15 @@ impl Executor {
             }
         }
 
-        // Set PATH to include gem bin
+        // Set PATH to include gem bin with platform-correct separators.
         if let Some(ref home) = self.gem_home {
-            let gem_bin = format!("{}/bin:{}", home, env::var("PATH").unwrap_or_default());
-            env.insert("PATH".to_string(), gem_bin);
+            let mut paths: Vec<PathBuf> = vec![PathBuf::from(home).join("bin")];
+            paths.extend(std::env::split_paths(
+                &std::env::var_os("PATH").unwrap_or_else(|| OsString::from("")),
+            ));
+            if let Ok(joined) = std::env::join_paths(paths) {
+                env.insert("PATH".to_string(), joined.to_string_lossy().to_string());
+            }
         }
 
         env
@@ -285,23 +370,21 @@ impl Executor {
     }
 
     pub fn gem_home(&self) -> Option<String> {
-        self.gem_home.clone()
-            .or_else(|| {
-                self.exec_gem(&["env".to_string(), "GEM_HOME".to_string()])
-                    .ok()
-                    .filter(|o| o.status.success())
-                    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-            })
+        self.gem_home.clone().or_else(|| {
+            self.exec_gem(&["env".to_string(), "GEM_HOME".to_string()])
+                .ok()
+                .filter(|o| o.status.success())
+                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        })
     }
 
     pub fn gem_path(&self) -> Option<String> {
-        self.gem_path.clone()
-            .or_else(|| {
-                self.exec_gem(&["env".to_string(), "GEM_PATH".to_string()])
-                    .ok()
-                    .filter(|o| o.status.success())
-                    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-            })
+        self.gem_path.clone().or_else(|| {
+            self.exec_gem(&["env".to_string(), "GEM_PATH".to_string()])
+                .ok()
+                .filter(|o| o.status.success())
+                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        })
     }
 
     pub fn cache_dir(&self) -> &Path {
@@ -316,9 +399,7 @@ impl Executor {
             .lines()
             .filter_map(|line| {
                 // Parse "gem_name (version)" format
-                line.split_whitespace()
-                    .next()
-                    .map(|s| s.to_string())
+                line.split_whitespace().next().map(|s| s.to_string())
             })
             .collect();
 

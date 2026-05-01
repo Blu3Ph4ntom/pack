@@ -30,28 +30,28 @@ const headings = [
     <section id="gem-compatible">
       <h2 class="doc-h2">Gem-compatible verbs</h2>
       <div class="command-list">
-        <div class="command-row"><code>pack install rails</code><p>Install a specific gem through the native manager path.</p></div>
-        <div class="command-row"><code>pack list rails</code><p>List installed gems, optionally matching a pattern.</p></div>
-        <div class="command-row"><code>pack search rails</code><p>Search remote gems.</p></div>
-        <div class="command-row"><code>pack info rails</code><p>Inspect gem metadata and dependencies.</p></div>
-        <div class="command-row"><code>pack env</code><p>Show gem-related environment information.</p></div>
-        <div class="command-row"><code>pack outdated</code><p>Check for outdated gems.</p></div>
+        <div class="command-row"><code>pack install rails</code><p>Install a specific gem through RubyGems, with Windows-safe <code>ruby -S gem</code> fallback.</p></div>
+        <div class="command-row"><code>pack list rails</code><p>List installed gems through RubyGems, optionally matching a pattern.</p></div>
+        <div class="command-row"><code>pack search rails</code><p>Search remote gems through the native RubyGems.org API client.</p></div>
+        <div class="command-row"><code>pack info rails</code><p>Inspect gem metadata and dependencies through the native registry client.</p></div>
+        <div class="command-row"><code>pack env</code><p>Show RubyGems environment information.</p></div>
+        <div class="command-row"><code>pack outdated</code><p>Check globally installed gems for updates through RubyGems.</p></div>
       </div>
     </section>
 
     <section id="bundler-adjacent">
       <h2 class="doc-h2">Project dependency flows</h2>
       <div class="command-list">
-        <div class="command-row"><code>pack install</code><p>Run the project install path when no specific gem is supplied (currently shells out to <code>bundle install</code>).</p></div>
+        <div class="command-row"><code>pack install</code><p>Run the project install path when no specific gem is supplied through Bundler, with <code>ruby -S bundle</code> fallback.</p></div>
         <div class="command-row"><code>pack exec rails console</code><p>Run gem binaries from the same front door.</p></div>
         <div class="command-row"><code>pack add rails</code><p>Add a dependency to the Gemfile.</p></div>
         <div class="command-row"><code>pack remove rails</code><p>Remove a dependency from the Gemfile.</p></div>
-        <div class="command-row"><code>pack update</code><p>Update all or one dependency in the current project (currently shells out to <code>bundle update</code>).</p></div>
+        <div class="command-row"><code>pack update</code><p>Update all or one dependency in the current project through Bundler.</p></div>
         <div class="command-row"><code>pack update --global</code><p>Update globally installed gems through RubyGems (<code>gem update</code> path).</p></div>
         <div class="command-row"><code>pack generate</code><p>Generate or update Gemfile.lock.</p></div>
         <div class="command-row"><code>pack why rack</code><p>Trace why a gem appears in the dependency tree.</p></div>
         <div class="command-row"><code>pack lock</code><p>Write a binary <code>pack.lock</code>.</p></div>
-        <div class="command-row"><code>pack upgrade</code><p>Upgrade the Pack wrapper install itself via RubyGems. Requires a Ruby/Gem environment.</p></div>
+        <div class="command-row"><code>pack upgrade</code><p>Upgrade Pack through RubyGems when available, or the direct binary installer otherwise.</p></div>
       </div>
     </section>
 

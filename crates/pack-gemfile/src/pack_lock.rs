@@ -1,6 +1,6 @@
 //! Pack.lock - Fast alternative to Gemfile.lock
 //!
-//! Pack.lock is a binary-friendly format that's 100x faster to parse
+//! Pack.lock is a binary-friendly format for Pack metadata.
 //! than Gemfile.lock while containing the same information.
 //!
 //! Format: MessagePack-encoded for speed, with text fallback support.
@@ -63,7 +63,7 @@ impl PackLock {
                 version: "2.0".to_string(),
                 bundler_version: Some("2.4.0".to_string()),
                 created_at: chrono_now(),
-                pack_version: "0.1.10".to_string(),
+                pack_version: "0.1.11".to_string(),
             },
             gems: HashMap::new(),
             platforms: vec![Platform {
@@ -76,13 +76,16 @@ impl PackLock {
 
     /// Add a gem to the lockfile
     pub fn add_gem(&mut self, name: GemName, version: GemVersion) {
-        self.gems.insert(name.clone(), LockedGem {
-            name,
-            version,
-            source: None,
-            dependencies: vec![],
-            platform: None,
-        });
+        self.gems.insert(
+            name.clone(),
+            LockedGem {
+                name,
+                version,
+                source: None,
+                dependencies: vec![],
+                platform: None,
+            },
+        );
     }
 
     /// Get a gem by name
@@ -132,19 +135,22 @@ impl PackLock {
 
     /// Write lockfile to path (binary MessagePack format)
     pub fn write_binary(&self, path: &PathBuf) -> PackResult<()> {
-        let encoded = rmp_serde::to_vec(self)
-            .map_err(|e| pack_core::PackError::Gemfile(format!("failed to serialize pack.lock: {}", e)))?;
+        let encoded = rmp_serde::to_vec(self).map_err(|e| {
+            pack_core::PackError::Gemfile(format!("failed to serialize pack.lock: {}", e))
+        })?;
 
-        std::fs::write(path, encoded)
-            .map_err(|e| pack_core::PackError::Gemfile(format!("failed to write pack.lock: {}", e)))?;
+        std::fs::write(path, encoded).map_err(|e| {
+            pack_core::PackError::Gemfile(format!("failed to write pack.lock: {}", e))
+        })?;
 
         Ok(())
     }
 
     /// Read lockfile from path (auto-detects binary vs text)
     pub fn read(path: &PathBuf) -> PackResult<Self> {
-        let content = std::fs::read(path)
-            .map_err(|e| pack_core::PackError::Gemfile(format!("failed to read pack.lock: {}", e)))?;
+        let content = std::fs::read(path).map_err(|e| {
+            pack_core::PackError::Gemfile(format!("failed to read pack.lock: {}", e))
+        })?;
 
         // Try binary MessagePack first
         if let Ok(lock) = rmp_serde::from_slice::<PackLock>(&content) {
@@ -173,7 +179,10 @@ impl PackLock {
             } else if trimmed == "specs:" {
                 in_specs = true;
                 continue;
-            } else if trimmed == "PLATFORMS" || trimmed == "DEPENDENCIES" || trimmed.starts_with("BUNDLED WITH") {
+            } else if trimmed == "PLATFORMS"
+                || trimmed == "DEPENDENCIES"
+                || trimmed.starts_with("BUNDLED WITH")
+            {
                 in_specs = false;
             }
 
@@ -183,13 +192,16 @@ impl PackLock {
                 if let (Some(n), Some(v)) = (name, version) {
                     let gem_name = n.clone();
                     let gem_version = v.clone();
-                    gems.insert(gem_name.clone(), LockedGem {
-                        name: gem_name,
-                        version: gem_version,
-                        source: None,
-                        dependencies: vec![],
-                        platform: None,
-                    });
+                    gems.insert(
+                        gem_name.clone(),
+                        LockedGem {
+                            name: gem_name,
+                            version: gem_version,
+                            source: None,
+                            dependencies: vec![],
+                            platform: None,
+                        },
+                    );
                 }
             }
         }
@@ -298,7 +310,10 @@ mod tests {
     #[test]
     fn test_add_gem() {
         let mut lock = PackLock::new();
-        lock.add_gem(GemName("rails".to_string()), GemVersion("7.1.0".to_string()));
+        lock.add_gem(
+            GemName("rails".to_string()),
+            GemVersion("7.1.0".to_string()),
+        );
         assert_eq!(lock.len(), 1);
         assert!(lock.get_gem(&GemName("rails".to_string())).is_some());
     }
@@ -306,7 +321,10 @@ mod tests {
     #[test]
     fn test_to_gemfile_lock_string() {
         let mut lock = PackLock::new();
-        lock.add_gem(GemName("rails".to_string()), GemVersion("7.1.0".to_string()));
+        lock.add_gem(
+            GemName("rails".to_string()),
+            GemVersion("7.1.0".to_string()),
+        );
 
         let output = lock.to_gemfile_lock_string();
         assert!(output.contains("rails (7.1.0)"));

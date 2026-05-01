@@ -1,16 +1,14 @@
-//! Native RubyGems implementation - no gem binary required!
+//! Native RubyGems.org registry helpers.
 //!
-//! Pack implements all gem operations natively via RubyGems.org API:
-//! - pack list      -> uses pack-registry cached gems
+//! This module is used for registry reads and cache experiments:
 //! - pack search     -> uses RubyGems.org search API
 //! - pack info       -> uses RubyGems.org gem info API
-//! - pack install    -> downloads and extracts gems directly
 //!
-//! This makes Pack a TRUE drop-in replacement - install pack and you don't
-//! need Ruby or gem installed at all!
+//! Real local gem installs intentionally go through RubyGems until Pack has a
+//! complete installer that writes specs, executables, and native extensions.
 
+use crate::{GemInfo, GemSearchResult, Registry};
 use pack_core::{GemName, GemVersion, PackError, PackResult};
-use crate::{Registry, GemInfo, GemSearchResult};
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -110,8 +108,9 @@ impl NativeGemManager {
     /// Install a gem (download + extract to GEM_HOME)
     pub fn install(&self, name: &str, version: Option<&str>) -> PackResult<String> {
         // For now, use async block
-        let rt = tokio::runtime::Runtime::new()
-            .map_err(|e| pack_core::PackError::Registry(format!("failed to create runtime: {}", e)))?;
+        let rt = tokio::runtime::Runtime::new().map_err(|e| {
+            pack_core::PackError::Registry(format!("failed to create runtime: {}", e))
+        })?;
 
         let gem_name = GemName(name.to_string());
 
@@ -120,7 +119,8 @@ impl NativeGemManager {
             Some(v) => GemVersion(v.to_string()),
             None => {
                 let versions = rt.block_on(self.registry.versions(&gem_name))?;
-                versions.first()
+                versions
+                    .first()
                     .ok_or_else(|| pack_core::PackError::Registry("no versions found".to_string()))?
                     .clone()
             }
@@ -136,14 +136,25 @@ impl NativeGemManager {
     }
 
     /// Extract a .gem file to GEM_HOME
-    fn extract_gem(&self, gem_path: &PathBuf, name: &GemName, version: &GemVersion) -> PackResult<()> {
+    fn extract_gem(
+        &self,
+        gem_path: &PathBuf,
+        name: &GemName,
+        version: &GemVersion,
+    ) -> PackResult<()> {
         // Create extraction directory
-        let gem_dir = self.gem_home.join("gems").join(format!("{}-{}", name.0, version.0));
+        let gem_dir = self
+            .gem_home
+            .join("gems")
+            .join(format!("{}-{}", name.0, version.0));
         std::fs::create_dir_all(&gem_dir)?;
 
         // .gem files are tar+gzip
         // For now, we just copy to cache - real extraction would need tar handling
-        let extracted_dir = self.cache_dir.join("extracted").join(format!("{}-{}", name.0, version.0));
+        let extracted_dir = self
+            .cache_dir
+            .join("extracted")
+            .join(format!("{}-{}", name.0, version.0));
         std::fs::create_dir_all(&extracted_dir)?;
 
         // Simple copy for now; retry around transient Windows file locks.
@@ -184,26 +195,29 @@ impl NativeGemManager {
 
     /// Get popular gems
     pub fn popular(&self, limit: usize) -> PackResult<Vec<GemSearchResult>> {
-        let rt = tokio::runtime::Runtime::new()
-            .map_err(|e| pack_core::PackError::Registry(format!("failed to create runtime: {}", e)))?;
+        let rt = tokio::runtime::Runtime::new().map_err(|e| {
+            pack_core::PackError::Registry(format!("failed to create runtime: {}", e))
+        })?;
         rt.block_on(self.registry.popular(limit))
     }
 
     /// Check if a gem is installed locally
     pub fn is_installed(&self, name: &str, version: Option<&str>) -> bool {
         let cached = self.registry.cached_gems().ok();
-        cached.map(|gems| {
-            gems.iter().any(|g| {
-                if g.name.0 == name {
-                    match version {
-                        Some(v) => g.version.0 == v,
-                        None => true, // any version
+        cached
+            .map(|gems| {
+                gems.iter().any(|g| {
+                    if g.name.0 == name {
+                        match version {
+                            Some(v) => g.version.0 == v,
+                            None => true, // any version
+                        }
+                    } else {
+                        false
                     }
-                } else {
-                    false
-                }
+                })
             })
-        }).unwrap_or(false)
+            .unwrap_or(false)
     }
 
     /// Uninstall a gem
@@ -218,7 +232,10 @@ impl NativeGemManager {
                     _ => {
                         std::fs::remove_file(gem.path)?;
                         // Also remove extracted directory
-                        let extracted = self.cache_dir.join("extracted").join(format!("{}-{}", name, gem.version.0));
+                        let extracted = self
+                            .cache_dir
+                            .join("extracted")
+                            .join(format!("{}-{}", name, gem.version.0));
                         if extracted.exists() {
                             std::fs::remove_dir_all(extracted).ok();
                         }

@@ -42,7 +42,11 @@ impl LockfileGenerator {
         self.update_gems.is_empty() || self.update_gems.contains(gem)
     }
 
-    pub fn generate(&self, _gemfile_path: &PathBuf, deps: &[Dependency]) -> PackResult<GeneratedLockfile> {
+    pub fn generate(
+        &self,
+        _gemfile_path: &PathBuf,
+        deps: &[Dependency],
+    ) -> PackResult<GeneratedLockfile> {
         let mut specs: HashMap<GemName, GemSpecGen> = HashMap::new();
         let mut top_level: Vec<GemName> = Vec::new();
         let mut all_deps: Vec<GemName> = Vec::new();
@@ -58,7 +62,9 @@ impl LockfileGenerator {
 
         // Simulate dependency resolution
         for dep in deps {
-            let version = dep.version.clone()
+            let version = dep
+                .version
+                .clone()
                 .unwrap_or(GemVersion(self.resolve_version(&dep.name)?));
 
             let spec = GemSpecGen {
@@ -91,21 +97,48 @@ impl LockfileGenerator {
         // For Rails-like gems, simulate some dependencies
         let simulated_deps: Vec<(GemName, GemVersion)> = match name.0.as_str() {
             "rails" => vec![
-                (GemName("actionpack".to_string()), GemVersion(">= 7.0".to_string())),
-                (GemName("activerecord".to_string()), GemVersion(">= 7.0".to_string())),
-                (GemName("railties".to_string()), GemVersion(">= 7.0".to_string())),
+                (
+                    GemName("actionpack".to_string()),
+                    GemVersion(">= 7.0".to_string()),
+                ),
+                (
+                    GemName("activerecord".to_string()),
+                    GemVersion(">= 7.0".to_string()),
+                ),
+                (
+                    GemName("railties".to_string()),
+                    GemVersion(">= 7.0".to_string()),
+                ),
             ],
             "actionpack" => vec![
-                (GemName("actionview".to_string()), GemVersion(">= 7.0".to_string())),
-                (GemName("rack".to_string()), GemVersion(">= 2.2".to_string())),
+                (
+                    GemName("actionview".to_string()),
+                    GemVersion(">= 7.0".to_string()),
+                ),
+                (
+                    GemName("rack".to_string()),
+                    GemVersion(">= 2.2".to_string()),
+                ),
             ],
             "activerecord" => vec![
-                (GemName("activesupport".to_string()), GemVersion(">= 7.0".to_string())),
-                (GemName(".Connection_pool".to_string()), GemVersion(">= 2.4".to_string())),
+                (
+                    GemName("activesupport".to_string()),
+                    GemVersion(">= 7.0".to_string()),
+                ),
+                (
+                    GemName(".Connection_pool".to_string()),
+                    GemVersion(">= 2.4".to_string()),
+                ),
             ],
             "rspec" => vec![
-                (GemName("rspec-core".to_string()), GemVersion(">= 3.12".to_string())),
-                (GemName("rspec-expectations".to_string()), GemVersion(">= 3.12".to_string())),
+                (
+                    GemName("rspec-core".to_string()),
+                    GemVersion(">= 3.12".to_string()),
+                ),
+                (
+                    GemName("rspec-expectations".to_string()),
+                    GemVersion(">= 3.12".to_string()),
+                ),
             ],
             _ => vec![],
         };
@@ -119,23 +152,35 @@ impl LockfileGenerator {
             ("actionview", "7.1.0", vec![("activesupport", ">= 7.0")]),
             ("rack", "2.2.8", vec![]),
             ("railties", "7.1.0", vec![("actionpack", ">= 7.0")]),
-            ("activesupport", "7.1.0", vec![("concurrent-ruby", "~> 1.1")]),
+            (
+                "activesupport",
+                "7.1.0",
+                vec![("concurrent-ruby", "~> 1.1")],
+            ),
             ("concurrent-ruby", "1.2.2", vec![]),
             ("rspec-core", "3.12.0", vec![("rspec-support", "~> 3.12")]),
-            ("rspec-expectations", "3.12.0", vec![("rspec-support", "~> 3.12")]),
+            (
+                "rspec-expectations",
+                "3.12.0",
+                vec![("rspec-support", "~> 3.12")],
+            ),
             ("rspec-support", "3.12.0", vec![]),
         ];
 
         for (name, version, deps) in remote_gems {
             let gem_name = GemName(name.to_string());
             if !specs.contains_key(&gem_name) {
-                let dep_tuples: Vec<(GemName, GemVersion)> = deps.iter()
+                let dep_tuples: Vec<(GemName, GemVersion)> = deps
+                    .iter()
                     .map(|(n, v)| (GemName(n.to_string()), GemVersion(v.to_string())))
                     .collect();
-                specs.insert(gem_name, GemSpecGen {
-                    version: GemVersion(version.to_string()),
-                    dependencies: dep_tuples,
-                });
+                specs.insert(
+                    gem_name,
+                    GemSpecGen {
+                        version: GemVersion(version.to_string()),
+                        dependencies: dep_tuples,
+                    },
+                );
             }
         }
     }
@@ -155,12 +200,12 @@ impl LockfileGenerator {
         content.push_str("  specs:\n");
 
         let mut sorted_specs: Vec<_> = lockfile.specs.iter().collect();
-        sorted_specs.sort_by(|a, b| a.0.0.cmp(&b.0.0));
+        sorted_specs.sort_by(|a, b| a.0 .0.cmp(&b.0 .0));
 
         for (name, spec) in sorted_specs {
             content.push_str(&format!("    {} ({})\n", name.0, spec.version.0));
             let mut sorted_deps: Vec<_> = spec.dependencies.iter().collect();
-            sorted_deps.sort_by(|a, b| a.0.0.cmp(&b.0.0));
+            sorted_deps.sort_by(|a, b| a.0 .0.cmp(&b.0 .0));
             for (dep_name, dep_ver) in sorted_deps {
                 content.push_str(&format!("      {} ({})\n", dep_name.0, dep_ver.0));
             }
@@ -221,8 +266,7 @@ mod tests {
 
     #[test]
     fn test_generator_with_update() {
-        let _gen = LockfileGenerator::new()
-            .with_update_gems(vec![GemName("rails".to_string())]);
+        let _gen = LockfileGenerator::new().with_update_gems(vec![GemName("rails".to_string())]);
         assert!(true);
     }
 
@@ -253,19 +297,19 @@ mod tests {
     #[test]
     fn test_generate_with_rails_deps() {
         let gen = LockfileGenerator::new();
-        let deps = vec![
-            Dependency {
-                name: GemName("rails".to_string()),
-                version: Some(GemVersion("~> 7.1".to_string())),
-                group: None,
-            },
-        ];
+        let deps = vec![Dependency {
+            name: GemName("rails".to_string()),
+            version: Some(GemVersion("~> 7.1".to_string())),
+            group: None,
+        }];
 
         let lockfile = gen.generate(&PathBuf::from("Gemfile"), &deps).unwrap();
 
         // Rails should have actionpack dependency
         let rails_spec = lockfile.specs.get(&GemName("rails".to_string())).unwrap();
-        let has_actionpack = rails_spec.dependencies.iter()
+        let has_actionpack = rails_spec
+            .dependencies
+            .iter()
             .any(|(n, _)| n.0 == "actionpack");
         assert!(has_actionpack);
     }
@@ -278,9 +322,10 @@ mod tests {
             GemName("rails".to_string()),
             GemSpecGen {
                 version: GemVersion("7.1.0".to_string()),
-                dependencies: vec![
-                    (GemName("actionpack".to_string()), GemVersion("7.1.0".to_string())),
-                ],
+                dependencies: vec![(
+                    GemName("actionpack".to_string()),
+                    GemVersion("7.1.0".to_string()),
+                )],
             },
         );
         specs.insert(
@@ -310,13 +355,11 @@ mod tests {
     #[test]
     fn test_write_lockfile() {
         let gen = LockfileGenerator::new();
-        let deps = vec![
-            Dependency {
-                name: GemName("rake".to_string()),
-                version: Some(GemVersion("13.0.0".to_string())),
-                group: None,
-            },
-        ];
+        let deps = vec![Dependency {
+            name: GemName("rake".to_string()),
+            version: Some(GemVersion("13.0.0".to_string())),
+            group: None,
+        }];
 
         let lockfile = gen.generate(&PathBuf::from("Gemfile"), &deps).unwrap();
         let temp_path = std::env::temp_dir().join("test_Gemfile.lock");

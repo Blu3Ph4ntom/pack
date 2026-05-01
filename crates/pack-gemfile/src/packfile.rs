@@ -47,7 +47,8 @@ impl Packfile {
         let content = std::fs::read_to_string(path)
             .map_err(|e| PackError::Gemfile(format!("failed to read Packfile: {}", e)))?;
 
-        Self::parse(&content).map_err(|e| PackError::Gemfile(format!("failed to parse Packfile: {}", e)))
+        Self::parse(&content)
+            .map_err(|e| PackError::Gemfile(format!("failed to parse Packfile: {}", e)))
     }
 
     /// Find Packfile in current directory
@@ -113,9 +114,12 @@ impl Packfile {
                     tasks.insert(task.name.clone(), task);
                 }
 
-                let section = &line[1..line.len()-1];
+                let section = &line[1..line.len() - 1];
                 if section.starts_with("tasks.") {
-                    let task_name = section.strip_prefix("tasks.").unwrap_or(section).to_string();
+                    let task_name = section
+                        .strip_prefix("tasks.")
+                        .unwrap_or(section)
+                        .to_string();
                     current_task = Some(PackfileTask {
                         name: task_name,
                         command: String::new(),
@@ -131,8 +135,9 @@ impl Packfile {
 
                     // Remove quotes from value
                     let value = if (value.starts_with('"') && value.ends_with('"'))
-                        || (value.starts_with('\'') && value.ends_with('\'')) {
-                        &value[1..value.len()-1]
+                        || (value.starts_with('\'') && value.ends_with('\''))
+                    {
+                        &value[1..value.len() - 1]
                     } else {
                         value
                     };
@@ -169,10 +174,15 @@ impl Packfile {
 
     /// Execute a task
     pub fn run(&self, name: &str) -> PackResult<()> {
-        let task = self.get(name)
+        let task = self
+            .get(name)
             .ok_or_else(|| PackError::Gemfile(format!("task '{}' not found in Packfile", name)))?;
 
-        println!("Running task '{}': {}", name, task.description.as_deref().unwrap_or(&task.command));
+        println!(
+            "Running task '{}': {}",
+            name,
+            task.description.as_deref().unwrap_or(&task.command)
+        );
 
         // Parse the command (simple shell-like parsing)
         let parts: Vec<&str> = task.command.split_whitespace().collect();
@@ -190,11 +200,16 @@ impl Packfile {
             cmd.env(key, value);
         }
 
-        let status = cmd.status()
+        let status = cmd
+            .status()
             .map_err(|e| PackError::Gemfile(format!("failed to execute task '{}': {}", name, e)))?;
 
         if !status.success() {
-            return Err(PackError::Gemfile(format!("task '{}' failed with exit code: {:?}", name, status.code())));
+            return Err(PackError::Gemfile(format!(
+                "task '{}' failed with exit code: {:?}",
+                name,
+                status.code()
+            )));
         }
 
         Ok(())

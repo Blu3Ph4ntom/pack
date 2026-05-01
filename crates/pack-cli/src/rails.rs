@@ -3,9 +3,10 @@
 //! Pack provides first-class support for Rails developers with commands
 //! that match their workflow and make development faster.
 
+use anyhow::{Context, Result};
+use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process::Command;
-use anyhow::{Context, Result};
 
 /// Rails application helpers
 pub struct RailsApp {
@@ -38,19 +39,17 @@ impl RailsApp {
 
     /// Get the Rails environment (development, test, production)
     pub fn env(&self) -> String {
-        std::env::var("RAILS_ENV")
-            .unwrap_or_else(|_| "development".to_string())
+        std::env::var("RAILS_ENV").unwrap_or_else(|_| "development".to_string())
     }
 
     /// Check if this is a Rails 8+ app with Solid Queue/Cache
     pub fn is_rails_8(&self) -> bool {
         let gemfile = self.path.join("Gemfile");
         if let Ok(content) = std::fs::read_to_string(&gemfile) {
-            content.contains("rails") && (
-                content.contains("solid_queue") ||
-                content.contains("solid_cache") ||
-                content.contains("propshaft")
-            )
+            content.contains("rails")
+                && (content.contains("solid_queue")
+                    || content.contains("solid_cache")
+                    || content.contains("propshaft"))
         } else {
             false
         }
@@ -58,17 +57,9 @@ impl RailsApp {
 
     /// Run a Rails command
     pub fn run_rails_cmd(&self, cmd: &[&str]) -> Result<()> {
-        let mut c = Command::new("bundle");
-        c.arg("exec");
-        c.arg("rails");
-
-        for arg in cmd {
-            c.arg(*arg);
-        }
-
-        c.current_dir(&self.path);
-
-        let status = c.status().context("Rails command failed")?;
+        let mut args = vec!["exec".to_string(), "rails".to_string()];
+        args.extend(cmd.iter().map(|arg| arg.to_string()));
+        let status = run_tool("bundle", &args, Some(&self.path)).context("Rails command failed")?;
 
         if !status.success() {
             anyhow::bail!("Rails command failed with exit code: {:?}", status.code());
@@ -79,11 +70,12 @@ impl RailsApp {
 
     /// Run a rake task
     pub fn run_rake(&self, task: &str) -> Result<()> {
-        let status = Command::new("bundle")
-            .args(["exec", "rake", task])
-            .current_dir(&self.path)
-            .status()
-            .context("Rake task failed")?;
+        let status = run_tool(
+            "bundle",
+            &["exec".to_string(), "rake".to_string(), task.to_string()],
+            Some(&self.path),
+        )
+        .context("Rake task failed")?;
 
         if !status.success() {
             anyhow::bail!("Rake task failed with exit code: {:?}", status.code());
@@ -94,23 +86,28 @@ impl RailsApp {
 
     /// Start the Rails server
     pub fn server(&self, port: Option<u16>, detached: bool) -> Result<()> {
-        let mut c = Command::new("bundle");
-        c.arg("exec");
-        c.arg("rails");
-        c.arg("server");
-        c.arg("-b").arg("0.0.0.0");
+        let mut args = vec![
+            "exec".to_string(),
+            "rails".to_string(),
+            "server".to_string(),
+            "-b".to_string(),
+            "0.0.0.0".to_string(),
+        ];
 
         if let Some(p) = port {
-            c.arg("-p").arg(p.to_string());
+            args.push("-p".to_string());
+            args.push(p.to_string());
         }
 
-        c.current_dir(&self.path);
-
         if detached {
-            c.spawn()?;
-            println!("Rails server started in background on port {}", port.unwrap_or(3000));
+            spawn_tool("bundle", &args, Some(&self.path))?;
+            println!(
+                "Rails server started in background on port {}",
+                port.unwrap_or(3000)
+            );
         } else {
-            let status = c.status().context("Rails server failed")?;
+            let status =
+                run_tool("bundle", &args, Some(&self.path)).context("Rails server failed")?;
             if !status.success() {
                 anyhow::bail!("Rails server exited with code: {:?}", status.code());
             }
@@ -121,31 +118,25 @@ impl RailsApp {
 
     /// Open Rails console
     pub fn console(&self) -> Result<()> {
-        let mut c = Command::new("bundle");
-        c.arg("exec");
-        c.arg("rails");
-        c.arg("console");
-
-        c.current_dir(&self.path);
-        c.status().context("Rails console failed")?;
+        run_tool(
+            "bundle",
+            &[
+                "exec".to_string(),
+                "rails".to_string(),
+                "console".to_string(),
+            ],
+            Some(&self.path),
+        )
+        .context("Rails console failed")?;
 
         Ok(())
     }
 
     /// Run tests
     pub fn test(&self, args: &[String]) -> Result<()> {
-        let mut c = Command::new("bundle");
-        c.arg("exec");
-        c.arg("rails");
-        c.arg("test");
-
-        for arg in args {
-            c.arg(arg);
-        }
-
-        c.current_dir(&self.path);
-
-        let status = c.status().context("Tests failed")?;
+        let mut command_args = vec!["exec".to_string(), "rails".to_string(), "test".to_string()];
+        command_args.extend(args.iter().cloned());
+        let status = run_tool("bundle", &command_args, Some(&self.path)).context("Tests failed")?;
 
         if !status.success() {
             anyhow::bail!("Tests failed with exit code: {:?}", status.code());
@@ -156,17 +147,9 @@ impl RailsApp {
 
     /// Run RSpec tests
     pub fn rspec(&self, args: &[String]) -> Result<()> {
-        let mut c = Command::new("bundle");
-        c.arg("exec");
-        c.arg("rspec");
-
-        for arg in args {
-            c.arg(arg);
-        }
-
-        c.current_dir(&self.path);
-
-        let status = c.status().context("RSpec failed")?;
+        let mut command_args = vec!["exec".to_string(), "rspec".to_string()];
+        command_args.extend(args.iter().cloned());
+        let status = run_tool("bundle", &command_args, Some(&self.path)).context("RSpec failed")?;
 
         if !status.success() {
             anyhow::bail!("RSpec failed with exit code: {:?}", status.code());
@@ -197,7 +180,10 @@ impl RailsApp {
             "precompile" => self.run_rake("assets:precompile"),
             "clean" => self.run_rake("assets:clean"),
             "clobber" => self.run_rake("assets:clobber"),
-            _ => anyhow::bail!("Unknown assets operation: {}. Try: precompile, clean, clobber", operation),
+            _ => anyhow::bail!(
+                "Unknown assets operation: {}. Try: precompile, clean, clobber",
+                operation
+            ),
         }
     }
 
@@ -216,7 +202,7 @@ impl RailsApp {
         let compose = self.path.join("docker-compose.pack.yml");
 
         let dockerfile_content = r#"# Multi-stage Dockerfile for Rails with Pack
-# Uses Pack for fast gem management - no Ruby needed for gem operations!
+# Uses Pack for RubyGems-compatible project workflows.
 
 FROM ruby:3.3-slim AS base
 WORKDIR /app
@@ -225,7 +211,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Pack
-RUN curl -fsSL https://pack.dev/install.sh | bash
+RUN curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash
 ENV PATH="/usr/local/bin:$PATH"
 
 # Install Node.js for asset pipeline
@@ -384,8 +370,7 @@ Thumbs.db
 node_modules/
 "#;
 
-        std::fs::write(&packignore, content)
-            .context("failed to write .packignore")?;
+        std::fs::write(&packignore, content).context("failed to write .packignore")?;
 
         println!("Generated .packignore");
         println!("This tells pack which files to skip when caching gems.");
@@ -407,12 +392,17 @@ node_modules/
 
             // Check for old asset pipeline
             if content.contains("sassc-rails") {
-                issues.push("sassc-rails detected. Consider migrating to Propshaft (Rails 8 default).".to_string());
+                issues.push(
+                    "sassc-rails detected. Consider migrating to Propshaft (Rails 8 default)."
+                        .to_string(),
+                );
             }
 
             // Check for Sprockets vs Propshaft
             if content.contains("sprockets-rails") && !content.contains("propshaft") {
-                issues.push("Sprockets detected. Propshaft is faster and the Rails 8 default.".to_string());
+                issues.push(
+                    "Sprockets detected. Propshaft is faster and the Rails 8 default.".to_string(),
+                );
             }
         }
 
@@ -497,8 +487,8 @@ pub fn rails_new(project_name: &str, args: &[String]) -> Result<PathBuf> {
     println!();
     println!("Next steps:");
     println!("  cd {}", project_name);
-    println!("  pack install     # Install gems (faster than bundle install)");
-    println!("  pack lock        # Generate pack.lock (100x faster parsing)");
+    println!("  pack install     # Install project gems");
+    println!("  pack lock        # Generate pack.lock");
     println!("  pack server      # Start Rails server");
 
     if args.contains(&"--docker".to_string()) {
@@ -508,4 +498,54 @@ pub fn rails_new(project_name: &str, args: &[String]) -> Result<PathBuf> {
     }
 
     Ok(project_path)
+}
+
+fn run_tool(
+    tool: &str,
+    args: &[String],
+    current_dir: Option<&PathBuf>,
+) -> Result<std::process::ExitStatus> {
+    let mut cmd = Command::new(tool);
+    cmd.args(args);
+    if let Some(dir) = current_dir {
+        cmd.current_dir(dir);
+    }
+
+    match cmd.status() {
+        Ok(status) => Ok(status),
+        Err(e) if e.kind() == ErrorKind::NotFound => {
+            let mut fallback = Command::new("ruby");
+            fallback.arg("-S").arg(tool).args(args);
+            if let Some(dir) = current_dir {
+                fallback.current_dir(dir);
+            }
+            fallback.status().with_context(|| {
+                format!("failed to run `{}` and fallback `ruby -S {}`", tool, tool)
+            })
+        }
+        Err(e) => Err(e).with_context(|| format!("failed to run `{}`", tool)),
+    }
+}
+
+fn spawn_tool(tool: &str, args: &[String], current_dir: Option<&PathBuf>) -> Result<()> {
+    let mut cmd = Command::new(tool);
+    cmd.args(args);
+    if let Some(dir) = current_dir {
+        cmd.current_dir(dir);
+    }
+
+    match cmd.spawn() {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == ErrorKind::NotFound => {
+            let mut fallback = Command::new("ruby");
+            fallback.arg("-S").arg(tool).args(args);
+            if let Some(dir) = current_dir {
+                fallback.current_dir(dir);
+            }
+            fallback.spawn().map(|_| ()).with_context(|| {
+                format!("failed to spawn `{}` and fallback `ruby -S {}`", tool, tool)
+            })
+        }
+        Err(e) => Err(e).with_context(|| format!("failed to spawn `{}`", tool)),
+    }
 }

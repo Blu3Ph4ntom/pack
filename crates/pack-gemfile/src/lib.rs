@@ -1,16 +1,16 @@
 //! Gemfile and Gemfile.lock parsing.
 
-use pack_core::{GemName, GemVersion, Dependency, PackError, PackResult};
+use pack_core::{Dependency, GemName, GemVersion, PackError, PackResult};
 use std::path::PathBuf;
 
-pub mod lockfile;
 pub mod generate;
+pub mod lockfile;
 pub mod pack_lock;
 pub mod packfile;
 
-pub use lockfile::{Lockfile, GemSpec, load_lockfile, find_dependency_path};
-pub use generate::{LockfileGenerator, GeneratedLockfile, GemSpecGen};
-pub use pack_lock::{PackLock, LockedGem, PackLockMetadata};
+pub use generate::{GemSpecGen, GeneratedLockfile, LockfileGenerator};
+pub use lockfile::{find_dependency_path, load_lockfile, GemSpec, Lockfile};
+pub use pack_lock::{LockedGem, PackLock, PackLockMetadata};
 pub use packfile::{Packfile, PackfileTask};
 
 pub struct Gemfile {
@@ -61,7 +61,10 @@ pub fn parse_gemfile(content: &str) -> PackResult<Vec<Dependency>> {
         } else if trimmed == "end" && in_group {
             in_group = false;
             current_group = None;
-        } else if trimmed.starts_with("gem ") || trimmed.starts_with("gem'") || trimmed.starts_with("gem\"") {
+        } else if trimmed.starts_with("gem ")
+            || trimmed.starts_with("gem'")
+            || trimmed.starts_with("gem\"")
+        {
             if let Some(dep) = parse_gem_line_with_group(trimmed, current_group.as_deref()) {
                 deps.push(dep);
             }
@@ -98,7 +101,10 @@ fn parse_groups(content: &str) -> Vec<GemGroup> {
                 current_group = Some(rest.trim_end_matches(':').to_string());
             }
         } else if current_group.is_some() {
-            if trimmed.starts_with("gem ") || trimmed.starts_with("gem'") || trimmed.starts_with("gem\"") {
+            if trimmed.starts_with("gem ")
+                || trimmed.starts_with("gem'")
+                || trimmed.starts_with("gem\"")
+            {
                 if let Some(dep) = parse_gem_line_with_group(trimmed, current_group.as_deref()) {
                     current_gems.push(dep);
                 }
@@ -117,7 +123,10 @@ fn parse_groups(content: &str) -> Vec<GemGroup> {
 
     if let Some(name) = current_group {
         if !current_gems.is_empty() {
-            groups.push(GemGroup { name, gems: current_gems });
+            groups.push(GemGroup {
+                name,
+                gems: current_gems,
+            });
         }
     }
 
@@ -196,7 +205,12 @@ fn parse_version_from_rest(rest: &str) -> Option<GemVersion> {
     None
 }
 
-pub fn add_gem(path: &PathBuf, name: &str, version: Option<&str>, group: Option<&str>) -> PackResult<()> {
+pub fn add_gem(
+    path: &PathBuf,
+    name: &str,
+    version: Option<&str>,
+    group: Option<&str>,
+) -> PackResult<()> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
 
@@ -298,7 +312,8 @@ pub fn find_gem(path: &PathBuf, name: &str) -> PackResult<Option<String>> {
         let trimmed = line.trim();
         if trimmed.starts_with(&format!("gem \"{}\"", name))
             || trimmed.starts_with(&format!("gem '{}'", name))
-            || trimmed.starts_with(&format!("gem {}", name)) {
+            || trimmed.starts_with(&format!("gem {}", name))
+        {
             return Ok(Some(trimmed.to_string()));
         }
     }
@@ -311,7 +326,10 @@ pub fn list_gems(path: &PathBuf) -> PackResult<Vec<(String, Option<String>)>> {
         .map_err(|e| PackError::Gemfile(format!("failed to read Gemfile: {}", e)))?;
 
     let deps = parse_gemfile(&content)?;
-    Ok(deps.into_iter().map(|d| (d.name.0, d.version.map(|v| v.0))).collect())
+    Ok(deps
+        .into_iter()
+        .map(|d| (d.name.0, d.version.map(|v| v.0)))
+        .collect())
 }
 
 #[cfg(test)]
@@ -373,7 +391,10 @@ end
         let deps = parse_gemfile(content).unwrap();
         assert_eq!(deps.len(), 3);
 
-        let test_gems: Vec<_> = deps.iter().filter(|d| d.group.as_deref() == Some("test")).collect();
+        let test_gems: Vec<_> = deps
+            .iter()
+            .filter(|d| d.group.as_deref() == Some("test"))
+            .collect();
         assert_eq!(test_gems.len(), 2);
     }
 

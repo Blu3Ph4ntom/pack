@@ -20,7 +20,9 @@ impl Cache {
     }
 
     pub fn from_path(path: &Path) -> Self {
-        Self { root: path.to_path_buf() }
+        Self {
+            root: path.to_path_buf(),
+        }
     }
 
     pub fn with_root(root: PathBuf) -> Self {
@@ -82,7 +84,11 @@ impl Cache {
         std::env::var("PACK_OFFLINE").is_ok()
     }
 
-    pub fn save_install_report(&self, project_path: &str, report: &InstallReport) -> PackResult<()> {
+    pub fn save_install_report(
+        &self,
+        project_path: &str,
+        report: &InstallReport,
+    ) -> PackResult<()> {
         let file_name = sanitize_filename(project_path);
         let report_path = self.installs_dir().join(format!("{}.json", file_name));
         let content = serde_json::to_string_pretty(report)
@@ -106,7 +112,8 @@ impl Cache {
     }
 
     pub fn package_path(&self, gem_name: &str, version: &str) -> PathBuf {
-        self.packages_dir().join(format!("{}-{}.gem", gem_name, version))
+        self.packages_dir()
+            .join(format!("{}-{}.gem", gem_name, version))
     }
 
     pub fn has_gem(&self, name: &str, version: &str) -> bool {
@@ -382,7 +389,10 @@ mod tests {
 
     #[test]
     fn test_sanitize_filename() {
-        assert_eq!(sanitize_filename("/home/user/project"), "_home_user_project");
+        assert_eq!(
+            sanitize_filename("/home/user/project"),
+            "_home_user_project"
+        );
         assert_eq!(sanitize_filename("simple"), "simple");
         assert_eq!(sanitize_filename("C:\\Users\\test"), "C__Users_test");
     }
@@ -414,6 +424,9 @@ mod tests {
             .with_error("something went wrong".to_string());
 
         assert!(!report.success);
-        assert_eq!(report.error_message, Some("something went wrong".to_string()));
+        assert_eq!(
+            report.error_message,
+            Some("something went wrong".to_string())
+        );
     }
 }

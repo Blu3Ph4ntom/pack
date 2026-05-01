@@ -1,13 +1,13 @@
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use log::{error, info};
 use pack_core::{GemName, Project, RubyEnvironment};
-use pack_gemfile::{add_gem, find_dependency_path, load_lockfile, remove_gem};
 use pack_exec::{Executor, OutputFormat};
+use pack_gemfile::{add_gem, find_dependency_path, load_lockfile, remove_gem};
 use pack_registry::native::NativeGemManager;
 use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::Command;
-use log::{info, error};
 
 mod rails;
 
@@ -16,11 +16,12 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Parser)]
 #[command(name = "pack")]
 #[command(version = VERSION)]
-#[command(about = "Blazingly fast Ruby package manager. Drop-in for gem and bundle commands.")]
-#[command(long_about = "Pack is a blazingly fast Ruby package manager written in Rust.
-It provides sub-second dependency resolution and installation.
+#[command(about = "Fast Ruby package and Rails workflow CLI.")]
+#[command(
+    long_about = "Pack is a fast Ruby package and Rails workflow CLI written in Rust.
+It gives Ruby developers one command surface for gem, Bundler, Rails, task, and diagnostic workflows.
 
-Pack is a drop-in replacement for gem and bundle:
+Common mappings:
   gem install rails     ->  pack install rails
   bundle exec rails     ->  pack exec rails
   gem list              ->  pack list
@@ -28,17 +29,19 @@ Pack is a drop-in replacement for gem and bundle:
 
 Supported commands:
   doctor     Diagnose local Ruby project configuration
+  setup      Bootstrap Ruby/Rails tooling on supported platforms
   install    Install gems (from Gemfile or gem install)
-  list       List installed gems (drop-in for gem list)
+  list       List installed gems
   search     Search remote gems
   add        Add a gem to Gemfile
   remove     Remove a gem from Gemfile
   update     Update gems in Gemfile or globally installed gems
-  upgrade    Upgrade the Pack wrapper install
+  upgrade    Upgrade Pack itself
   why        Explain why a gem is in the dependency tree
   generate   Generate Gemfile.lock from Gemfile
   exec       Execute a gem's binary directly
-  plugins    Manage plugin ecosystem")]
+  plugins    Manage plugin ecosystem"
+)]
 struct Cli {
     /// Enable verbose output
     #[arg(short, long, global = true)]
@@ -225,7 +228,7 @@ enum Commands {
         #[arg(long)]
         include_optional: bool,
     },
-    /// Generate pack.lock (binary format, 100x faster than Gemfile.lock)
+    /// Generate pack.lock (binary format)
     Lock {
         /// Output path (default: ./pack.lock)
         #[arg(short, long)]
@@ -335,20 +338,49 @@ fn main() {
 
     let result = match cli.command {
         Some(Commands::Doctor) => run_doctor(),
-        Some(Commands::New { name, skip_bundle, skip_lock, docker, database, assets }) => {
-            run_new(&name, skip_bundle, skip_lock, docker, database.as_deref(), assets.as_deref())
-        }
-        Some(Commands::Init { skip_packignore, skip_docker }) => {
-            run_init(skip_packignore, skip_docker)
-        }
-        Some(Commands::Install { gem, version, development, no_install, gem_args }) => {
-            run_install(gem.as_deref(), version.as_deref(), development, no_install, &gem_args)
-        }
-        Some(Commands::List { pattern, local, remote }) => run_list(pattern.as_deref(), local, remote),
+        Some(Commands::New {
+            name,
+            skip_bundle,
+            skip_lock,
+            docker,
+            database,
+            assets,
+        }) => run_new(
+            &name,
+            skip_bundle,
+            skip_lock,
+            docker,
+            database.as_deref(),
+            assets.as_deref(),
+        ),
+        Some(Commands::Init {
+            skip_packignore,
+            skip_docker,
+        }) => run_init(skip_packignore, skip_docker),
+        Some(Commands::Install {
+            gem,
+            version,
+            development,
+            no_install,
+            gem_args,
+        }) => run_install(
+            gem.as_deref(),
+            version.as_deref(),
+            development,
+            no_install,
+            &gem_args,
+        ),
+        Some(Commands::List {
+            pattern,
+            local,
+            remote,
+        }) => run_list(pattern.as_deref(), local, remote),
         Some(Commands::Search { pattern, limit }) => run_search(&pattern, limit),
         Some(Commands::Info { gem }) => run_info(&gem),
         Some(Commands::Env { var }) => run_env(var.as_deref()),
-        Some(Commands::Uninstall { gem, version, all }) => run_uninstall(&gem, version.as_deref(), all),
+        Some(Commands::Uninstall { gem, version, all }) => {
+            run_uninstall(&gem, version.as_deref(), all)
+        }
         Some(Commands::Outdated { group }) => run_outdated(group.as_deref()),
         Some(Commands::Cleanup { dry_run }) => run_cleanup(dry_run),
         Some(Commands::Exec { command, args }) => run_exec(&command, &args),
@@ -363,7 +395,10 @@ fn main() {
         Some(Commands::Upgrade { force }) => run_upgrade(force),
         Some(Commands::Setup { rails, force }) => run_setup(rails, force),
         Some(Commands::Why { gem }) => run_why(&gem),
-        Some(Commands::Generate { update, include_optional }) => run_generate(update.as_deref(), include_optional),
+        Some(Commands::Generate {
+            update,
+            include_optional,
+        }) => run_generate(update.as_deref(), include_optional),
         Some(Commands::Lock { output }) => run_lock(output.as_deref()),
         Some(Commands::Lockfile { path }) => run_lockfile(path.as_deref()),
         Some(Commands::Run { task }) => run_run(&task),
@@ -500,7 +535,14 @@ fn run_doctor() -> anyhow::Result<()> {
     // Rails-specific checks
     if let Ok(Some(app)) = rails::RailsApp::discover() {
         println!("Rails");
-        println!("  Rails 8 features: {}", if app.is_rails_8() { "enabled" } else { "not detected" });
+        println!(
+            "  Rails 8 features: {}",
+            if app.is_rails_8() {
+                "enabled"
+            } else {
+                "not detected"
+            }
+        );
 
         // Run Rails doctor checks
         if let Ok(issues) = app.doctor() {
@@ -526,15 +568,22 @@ fn run_doctor() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_install(gem: Option<&str>, version: Option<&str>, _development: bool, _no_install: bool, gem_args: &[String]) -> anyhow::Result<()> {
+fn run_install(
+    gem: Option<&str>,
+    version: Option<&str>,
+    _development: bool,
+    _no_install: bool,
+    gem_args: &[String],
+) -> anyhow::Result<()> {
+    let executor = Executor::new();
+
     // If no gem specified, do bundle install
     if gem.is_none() && gem_args.is_empty() {
         info!("Installing gems from Gemfile");
         println!("Installing gems...");
 
-        let output = Command::new("bundle")
-            .arg("install")
-            .output()
+        let output = executor
+            .exec_bundle(&["install".to_string()])
             .map_err(|e| anyhow::anyhow!("failed to run bundle install: {}", e))?;
 
         std::io::stdout().write_all(&output.stdout).ok();
@@ -547,9 +596,6 @@ fn run_install(gem: Option<&str>, version: Option<&str>, _development: bool, _no
             Err(anyhow::anyhow!("bundle install failed"))
         }
     } else {
-        // Use native gem installation
-        let native = NativeGemManager::new();
-
         let gem_name = if let Some(g) = gem {
             g.to_string()
         } else if !gem_args.is_empty() {
@@ -561,35 +607,67 @@ fn run_install(gem: Option<&str>, version: Option<&str>, _development: bool, _no
         info!("Installing gem: {} (version: {:?})", gem_name, version);
         println!("Installing {}...", gem_name);
 
-        let result = native.install(&gem_name, version)
-            .map_err(|e| anyhow::anyhow!("failed to install gem: {}", e))?;
+        let mut args = vec!["install".to_string(), gem_name.clone()];
+        if let Some(v) = version {
+            args.push("--version".to_string());
+            args.push(v.to_string());
+        }
+        args.extend(gem_args.iter().cloned().skip(1));
 
-        println!("{}", result);
-        Ok(())
+        let output = executor
+            .exec_gem(&args)
+            .map_err(|e| anyhow::anyhow!("failed to run gem install: {}", e))?;
+
+        std::io::stdout().write_all(&output.stdout).ok();
+        std::io::stderr().write_all(&output.stderr).ok();
+
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("gem install failed"))
+        }
     }
 }
 
-fn run_list(pattern: Option<&str>, _local: bool, _remote: bool) -> anyhow::Result<()> {
-    let native = NativeGemManager::new();
-
-    let gems = native.list(pattern)
-        .map_err(|e| anyhow::anyhow!("failed to list gems: {}", e))?;
-
-    for gem in gems {
-        println!("{}", gem);
+fn run_list(pattern: Option<&str>, local: bool, remote: bool) -> anyhow::Result<()> {
+    let executor = Executor::new();
+    let mut args = vec!["list".to_string()];
+    if let Some(p) = pattern {
+        args.push(p.to_string());
+    }
+    if local {
+        args.push("--local".to_string());
+    }
+    if remote {
+        args.push("--remote".to_string());
     }
 
-    Ok(())
+    let output = executor
+        .exec_gem(&args)
+        .map_err(|e| anyhow::anyhow!("failed to run gem list: {}", e))?;
+
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("gem list failed"))
+    }
 }
 
 fn run_search(pattern: &str, limit: Option<usize>) -> anyhow::Result<()> {
     let native = NativeGemManager::new();
 
-    let results = native.search(pattern, limit)
+    let results = native
+        .search(pattern, limit)
         .map_err(|e| anyhow::anyhow!("search failed: {}", e))?;
 
     for result in results {
-        println!("{} ({}) - {} downloads", result.name.0, result.version.0, result.downloads);
+        println!(
+            "{} ({}) - {} downloads",
+            result.name.0, result.version.0, result.downloads
+        );
         if !result.description.is_empty() {
             let desc = if result.description.len() > 100 {
                 format!("{}...", &result.description[..100])
@@ -607,7 +685,8 @@ fn run_info(gem: &str) -> anyhow::Result<()> {
     let native = NativeGemManager::new();
     let gem_name = GemName(gem.to_string());
 
-    let info = native.info(&gem_name)
+    let info = native
+        .info(&gem_name)
         .map_err(|e| anyhow::anyhow!("failed to get gem info: {}", e))?;
 
     println!("{} ({})", info.name.0, info.version.0);
@@ -647,77 +726,65 @@ fn run_info(gem: &str) -> anyhow::Result<()> {
 }
 
 fn run_env(var: Option<&str>) -> anyhow::Result<()> {
-    let native = NativeGemManager::new();
-
-    println!("{}", native.env());
-
+    let executor = Executor::new();
+    let mut args = vec!["env".to_string()];
     if let Some(v) = var {
-        match v {
-            "GEM_HOME" | "GEM_PATH" | "PACK_CACHE" => {
-                // These are already printed by native.env()
-            }
-            _ => {
-                println!("Unknown variable: {}", v);
-            }
-        }
+        args.push(v.to_string());
     }
 
-    Ok(())
+    let output = executor
+        .exec_gem(&args)
+        .map_err(|e| anyhow::anyhow!("failed to run gem env: {}", e))?;
+
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("gem env failed"))
+    }
 }
 
 fn run_uninstall(gem: &str, version: Option<&str>, all: bool) -> anyhow::Result<()> {
-    let native = NativeGemManager::new();
-
+    let executor = Executor::new();
+    let mut args = vec!["uninstall".to_string(), gem.to_string()];
+    if let Some(v) = version {
+        args.push("--version".to_string());
+        args.push(v.to_string());
+    }
     if all {
-        println!("Uninstalling all versions of {}...", gem);
-        // Uninstall all versions
-        let mut removed = false;
-        loop {
-            match native.uninstall(gem, None) {
-                Ok(true) => { removed = true; }
-                Ok(false) => break,
-                Err(e) => return Err(anyhow::anyhow!("uninstall failed: {}", e)),
-            }
-        }
-        if removed {
-            println!("Uninstalled {}", gem);
-        } else {
-            println!("{} not installed", gem);
-        }
-    } else {
-        println!("Uninstalling {}...", gem);
-        let result = native.uninstall(gem, version.as_deref())
-            .map_err(|e| anyhow::anyhow!("uninstall failed: {}", e))?;
-
-        if result {
-            println!("Uninstalled {}", gem);
-        } else {
-            println!("{} not found", gem);
-        }
+        args.push("--all".to_string());
     }
 
-    Ok(())
+    let output = executor
+        .exec_gem(&args)
+        .map_err(|e| anyhow::anyhow!("failed to run gem uninstall: {}", e))?;
+
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("gem uninstall failed"))
+    }
 }
 
 fn run_outdated(_group: Option<&str>) -> anyhow::Result<()> {
-    let native = NativeGemManager::new();
+    let executor = Executor::new();
+    let output = executor
+        .exec_gem(&["outdated".to_string()])
+        .map_err(|e| anyhow::anyhow!("failed to run gem outdated: {}", e))?;
 
-    println!("Checking for outdated gems...");
+    std::io::stdout().write_all(&output.stdout).ok();
+    std::io::stderr().write_all(&output.stderr).ok();
 
-    let outdated = native.outdated()
-        .map_err(|e| anyhow::anyhow!("failed to check outdated gems: {}", e))?;
-
-    if outdated.is_empty() {
-        println!("No outdated gems.");
-        return Ok(());
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("gem outdated failed"))
     }
-
-    println!("\nOutdated gems:");
-    for gem in outdated {
-        println!("  {} ({} < {})", gem.name.0, gem.current_version.0, gem.latest_version.0);
-    }
-
-    Ok(())
 }
 
 fn run_cleanup(dry_run: bool) -> anyhow::Result<()> {
@@ -728,7 +795,8 @@ fn run_cleanup(dry_run: bool) -> anyhow::Result<()> {
         args.push("-n".to_string());
     }
 
-    let output = executor.exec_gem(&args)
+    let output = executor
+        .exec_gem(&args)
         .map_err(|e| anyhow::anyhow!("gem cleanup failed: {}", e))?;
 
     std::io::stdout().write_all(&output.stdout).ok();
@@ -760,7 +828,8 @@ fn run_exec(command: &str, args: &[String]) -> anyhow::Result<()> {
 
     // Fallback to bundle exec
     info!("Direct exec failed, trying via bundle");
-    let output = executor.exec_via_bundle(command, args, None)
+    let output = executor
+        .exec_via_bundle(command, args, None)
         .map_err(|e| anyhow::anyhow!("failed to execute {}: {}", command, e))?;
 
     std::io::stdout().write_all(&output.stdout).ok();
@@ -773,10 +842,17 @@ fn run_exec(command: &str, args: &[String]) -> anyhow::Result<()> {
     }
 }
 
-fn run_add(gem: &str, version: Option<&str>, group: Option<&str>, no_install: bool) -> anyhow::Result<()> {
+fn run_add(
+    gem: &str,
+    version: Option<&str>,
+    group: Option<&str>,
+    no_install: bool,
+) -> anyhow::Result<()> {
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
-    let gemfile_path = project.gemfile.as_ref()
+    let gemfile_path = project
+        .gemfile
+        .as_ref()
         .ok_or_else(|| anyhow::anyhow!("no Gemfile found in current directory"))?;
 
     info!("Adding gem {} to Gemfile", gem);
@@ -786,11 +862,8 @@ fn run_add(gem: &str, version: Option<&str>, group: Option<&str>, no_install: bo
     println!("Added {} to Gemfile", gem);
 
     if !no_install {
-        // Run bundle install
-        let output = Command::new("bundle")
-            .arg("install")
-            .current_dir(&project.path)
-            .output()
+        let output = Executor::new()
+            .exec_bundle(&["install".to_string()])
             .map_err(|e| anyhow::anyhow!("failed to run bundle install: {}", e))?;
 
         std::io::stdout().write_all(&output.stdout).ok();
@@ -808,7 +881,9 @@ fn run_add(gem: &str, version: Option<&str>, group: Option<&str>, no_install: bo
 fn run_remove(gem: &str, no_install: bool) -> anyhow::Result<()> {
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
-    let gemfile_path = project.gemfile.as_ref()
+    let gemfile_path = project
+        .gemfile
+        .as_ref()
         .ok_or_else(|| anyhow::anyhow!("no Gemfile found in current directory"))?;
 
     info!("Removing gem {} from Gemfile", gem);
@@ -822,10 +897,8 @@ fn run_remove(gem: &str, no_install: bool) -> anyhow::Result<()> {
     }
 
     if !no_install {
-        let output = Command::new("bundle")
-            .arg("install")
-            .current_dir(&project.path)
-            .output()
+        let output = Executor::new()
+            .exec_bundle(&["install".to_string()])
             .map_err(|e| anyhow::anyhow!("failed to run bundle install: {}", e))?;
 
         std::io::stdout().write_all(&output.stdout).ok();
@@ -854,7 +927,8 @@ fn run_update(gem: Option<&str>, global: bool) -> anyhow::Result<()> {
                 gem.map(|_| "selected ").unwrap_or("")
             );
 
-            let output = executor.exec_gem(&args)
+            let output = executor
+                .exec_gem(&args)
                 .map_err(|e| anyhow::anyhow!("failed to run gem update: {}", e))?;
 
             std::io::stdout().write_all(&output.stdout).ok();
@@ -868,65 +942,30 @@ fn run_update(gem: Option<&str>, global: bool) -> anyhow::Result<()> {
             return Err(anyhow::anyhow!("gem update failed"));
         }
 
-        println!("RubyGems is unavailable; falling back to native global update path...");
-        let native = NativeGemManager::new();
-        if let Some(g) = gem {
-            let result = native.install(g, None)
-                .map_err(|e| anyhow::anyhow!("native global update failed for {}: {}", g, e))?;
-            println!("{}", result);
-            println!("Done.");
-            return Ok(());
-        }
-
-        let outdated = native.outdated()
-            .map_err(|e| anyhow::anyhow!("failed to enumerate outdated gems: {}", e))?;
-        if outdated.is_empty() {
-            println!("No outdated gems found in native cache.");
-            return Ok(());
-        }
-
-        let mut updated = 0usize;
-        for item in outdated {
-            match native.install(item.name_str(), None) {
-                Ok(msg) => {
-                    println!("{}", msg);
-                    updated += 1;
-                }
-                Err(e) => eprintln!("warning: failed to update {}: {}", item.name_str(), e),
-            }
-        }
-        println!("Done. Updated {} gem(s).", updated);
-        return Ok(());
+        return Err(anyhow::anyhow!(
+            "RubyGems is unavailable. Install RubyGems or run `pack setup`, then retry `pack update --global`."
+        ));
     }
 
-    let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
+    let _project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
     info!("Updating gems");
     println!("Updating gems...");
 
-    if !Executor::new().is_bundle_available() {
-        if let Some(g) = gem {
-            println!("Bundler is unavailable; falling back to native update for {}...", g);
-            let native = NativeGemManager::new();
-            let result = native.install(g, None)
-                .map_err(|e| anyhow::anyhow!("native project update failed for {}: {}", g, e))?;
-            println!("{}", result);
-            println!("Note: this updates native cache; Gemfile.lock is not rewritten in fallback mode.");
-            return Ok(());
-        }
+    let executor = Executor::new();
+    if !executor.is_bundle_available() {
         return Err(anyhow::anyhow!(
-            "bundle is unavailable. For project-wide update install Bundler, or run `pack update <gem>`."
+            "Bundler is unavailable. Run `pack setup` or `ruby -S gem install bundler`, then retry `pack update`."
         ));
     }
 
-    let mut cmd = Command::new("bundle");
-    cmd.arg("update");
+    let mut args = vec!["update".to_string()];
     if let Some(g) = gem {
-        cmd.arg(g);
+        args.push(g.to_string());
     }
 
-    let output = cmd.current_dir(&project.path)
-        .output()
+    let output = executor
+        .exec_bundle(&args)
         .map_err(|e| anyhow::anyhow!("failed to run bundle update: {}", e))?;
 
     std::io::stdout().write_all(&output.stdout).ok();
@@ -942,11 +981,7 @@ fn run_update(gem: Option<&str>, global: bool) -> anyhow::Result<()> {
 
 fn run_upgrade(force: bool) -> anyhow::Result<()> {
     let executor = Executor::new();
-    let gem_probe = executor.exec_gem(&["--version".to_string()]);
-    let gem_available = gem_probe
-        .as_ref()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+    let gem_available = executor.is_gem_available();
 
     if !gem_available {
         println!("RubyGems is unavailable; falling back to direct binary installer...");
@@ -991,12 +1026,13 @@ fn run_upgrade(force: bool) -> anyhow::Result<()> {
         }
 
         return Err(anyhow::anyhow!(
-            "pack upgrade failed in direct installer mode. If this repository is private, set GITHUB_TOKEN and retry, or run `gem install pack-rb`."
+            "pack upgrade failed in direct installer mode. Retry, or run `gem install pack-rb`."
         ));
     }
 
     if !force {
-        let outdated = executor.exec_gem(&["outdated".to_string(), "pack-rb".to_string()])
+        let outdated = executor
+            .exec_gem(&["outdated".to_string(), "pack-rb".to_string()])
             .map_err(|e| anyhow::anyhow!("failed to check pack-rb version: {}", e))?;
 
         if outdated.status.success() {
@@ -1010,12 +1046,13 @@ fn run_upgrade(force: bool) -> anyhow::Result<()> {
     }
 
     println!("Upgrading Pack via RubyGems...");
-    let output = executor.exec_gem(&[
-        "install".to_string(),
-        "pack-rb".to_string(),
-        "--no-document".to_string(),
-    ])
-    .map_err(|e| anyhow::anyhow!("failed to run gem install pack-rb: {}", e))?;
+    let output = executor
+        .exec_gem(&[
+            "install".to_string(),
+            "pack-rb".to_string(),
+            "--no-document".to_string(),
+        ])
+        .map_err(|e| anyhow::anyhow!("failed to run gem install pack-rb: {}", e))?;
 
     std::io::stdout().write_all(&output.stdout).ok();
     std::io::stderr().write_all(&output.stderr).ok();
@@ -1032,7 +1069,7 @@ fn run_setup(install_rails: bool, force: bool) -> anyhow::Result<()> {
     let executor = Executor::new();
 
     let ruby_available = executor.is_ruby_available();
-    let gem_available = executor.exec_gem(&["--version".to_string()]).map(|o| o.status.success()).unwrap_or(false);
+    let gem_available = executor.is_gem_available();
 
     if ruby_available && gem_available && !force {
         println!("Ruby toolchain already available.");
@@ -1110,37 +1147,91 @@ fn install_ruby_toolchain() -> anyhow::Result<()> {
     {
         let installers: &[(&str, &[&str])] = &[
             ("apt-get", &["sudo", "apt-get", "update"]),
-            ("apt-get", &["sudo", "apt-get", "install", "-y", "ruby-full", "build-essential"]),
-            ("dnf", &["sudo", "dnf", "install", "-y", "ruby", "ruby-devel", "gcc", "make"]),
-            ("pacman", &["sudo", "pacman", "-S", "--noconfirm", "ruby", "base-devel"]),
-            ("zypper", &["sudo", "zypper", "--non-interactive", "install", "ruby", "ruby-devel", "gcc", "make"]),
+            (
+                "apt-get",
+                &[
+                    "sudo",
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "ruby-full",
+                    "build-essential",
+                ],
+            ),
+            (
+                "dnf",
+                &[
+                    "sudo",
+                    "dnf",
+                    "install",
+                    "-y",
+                    "ruby",
+                    "ruby-devel",
+                    "gcc",
+                    "make",
+                ],
+            ),
+            (
+                "pacman",
+                &["sudo", "pacman", "-S", "--noconfirm", "ruby", "base-devel"],
+            ),
+            (
+                "zypper",
+                &[
+                    "sudo",
+                    "zypper",
+                    "--non-interactive",
+                    "install",
+                    "ruby",
+                    "ruby-devel",
+                    "gcc",
+                    "make",
+                ],
+            ),
         ];
 
         // Try apt flow first.
         if Command::new("apt-get").arg("--version").output().is_ok() {
             let up = Command::new("sudo").args(["apt-get", "update"]).status();
-            let ins = Command::new("sudo").args(["apt-get", "install", "-y", "ruby-full", "build-essential"]).status();
-            if up.map(|s| s.success()).unwrap_or(false) && ins.map(|s| s.success()).unwrap_or(false) {
+            let ins = Command::new("sudo")
+                .args(["apt-get", "install", "-y", "ruby-full", "build-essential"])
+                .status();
+            if up.map(|s| s.success()).unwrap_or(false) && ins.map(|s| s.success()).unwrap_or(false)
+            {
                 return Ok(());
             }
         }
 
         if Command::new("dnf").arg("--version").output().is_ok() {
-            let ins = Command::new("sudo").args(["dnf", "install", "-y", "ruby", "ruby-devel", "gcc", "make"]).status();
+            let ins = Command::new("sudo")
+                .args(["dnf", "install", "-y", "ruby", "ruby-devel", "gcc", "make"])
+                .status();
             if ins.map(|s| s.success()).unwrap_or(false) {
                 return Ok(());
             }
         }
 
         if Command::new("pacman").arg("--version").output().is_ok() {
-            let ins = Command::new("sudo").args(["pacman", "-S", "--noconfirm", "ruby", "base-devel"]).status();
+            let ins = Command::new("sudo")
+                .args(["pacman", "-S", "--noconfirm", "ruby", "base-devel"])
+                .status();
             if ins.map(|s| s.success()).unwrap_or(false) {
                 return Ok(());
             }
         }
 
         if Command::new("zypper").arg("--version").output().is_ok() {
-            let ins = Command::new("sudo").args(["zypper", "--non-interactive", "install", "ruby", "ruby-devel", "gcc", "make"]).status();
+            let ins = Command::new("sudo")
+                .args([
+                    "zypper",
+                    "--non-interactive",
+                    "install",
+                    "ruby",
+                    "ruby-devel",
+                    "gcc",
+                    "make",
+                ])
+                .status();
             if ins.map(|s| s.success()).unwrap_or(false) {
                 return Ok(());
             }
@@ -1172,7 +1263,9 @@ fn install_rails_gem() -> anyhow::Result<()> {
 fn run_why(gem: &str) -> anyhow::Result<()> {
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
-    let lockfile_path = project.gemfile_lock.as_ref()
+    let lockfile_path = project
+        .gemfile_lock
+        .as_ref()
         .ok_or_else(|| anyhow::anyhow!("no Gemfile.lock found. Run `pack install` first."))?;
 
     info!("Finding dependency path for {}", gem);
@@ -1205,7 +1298,9 @@ fn run_why(gem: &str) -> anyhow::Result<()> {
 fn run_generate(update: Option<&[String]>, include_optional: bool) -> anyhow::Result<()> {
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
-    let gemfile_path = project.gemfile.as_ref()
+    let gemfile_path = project
+        .gemfile
+        .as_ref()
         .ok_or_else(|| anyhow::anyhow!("no Gemfile found in current directory"))?;
 
     info!("Loading Gemfile");
@@ -1225,17 +1320,20 @@ fn run_generate(update: Option<&[String]>, include_optional: bool) -> anyhow::Re
     }
 
     if let Some(update_gems) = update {
-        let gem_names: Vec<pack_core::GemName> = update_gems.iter()
+        let gem_names: Vec<pack_core::GemName> = update_gems
+            .iter()
             .map(|s| pack_core::GemName(s.clone()))
             .collect();
         generator = generator.with_update_gems(gem_names);
     }
 
-    let lockfile = generator.generate(gemfile_path, &deps)
+    let lockfile = generator
+        .generate(gemfile_path, &deps)
         .map_err(|e| anyhow::anyhow!("failed to generate lockfile: {}", e))?;
 
     let lockfile_path = project.path.join("Gemfile.lock");
-    generator.write_lockfile(&lockfile, &lockfile_path)
+    generator
+        .write_lockfile(&lockfile, &lockfile_path)
         .map_err(|e| anyhow::anyhow!("failed to write Gemfile.lock: {}", e))?;
 
     println!("Generated Gemfile.lock with {} gems", lockfile.specs.len());
@@ -1246,7 +1344,9 @@ fn run_generate(update: Option<&[String]>, include_optional: bool) -> anyhow::Re
 fn run_lock(output: Option<&str>) -> anyhow::Result<()> {
     let project = Project::discover().map_err(|e| anyhow::anyhow!("{}", e))?;
 
-    let gemfile_path = project.gemfile.as_ref()
+    let gemfile_path = project
+        .gemfile
+        .as_ref()
         .ok_or_else(|| anyhow::anyhow!("no Gemfile found in current directory"))?;
 
     info!("Loading Gemfile");
@@ -1263,7 +1363,12 @@ fn run_lock(output: Option<&str>) -> anyhow::Result<()> {
 
     // Add each gem from Gemfile to pack.lock
     for dep in &deps {
-        pack_lock.add_gem(dep.name.clone(), dep.version.clone().unwrap_or(pack_core::GemVersion("latest".to_string())));
+        pack_lock.add_gem(
+            dep.name.clone(),
+            dep.version
+                .clone()
+                .unwrap_or(pack_core::GemVersion("latest".to_string())),
+        );
     }
 
     let output_path = if let Some(o) = output {
@@ -1272,10 +1377,15 @@ fn run_lock(output: Option<&str>) -> anyhow::Result<()> {
         project.path.join("pack.lock")
     };
 
-    pack_lock.write_binary(&output_path)
+    pack_lock
+        .write_binary(&output_path)
         .map_err(|e| anyhow::anyhow!("failed to write pack.lock: {}", e))?;
 
-    println!("Generated pack.lock at {} with {} gems", output_path.display(), pack_lock.len());
+    println!(
+        "Generated pack.lock at {} with {} gems",
+        output_path.display(),
+        pack_lock.len()
+    );
 
     Ok(())
 }
@@ -1290,7 +1400,10 @@ fn run_lockfile(path: Option<&str>) -> anyhow::Result<()> {
     };
 
     if !lockfile_path.exists() {
-        return Err(anyhow::anyhow!("pack.lock not found at {}. Run 'pack lock' to generate it.", lockfile_path.display()));
+        return Err(anyhow::anyhow!(
+            "pack.lock not found at {}. Run 'pack lock' to generate it.",
+            lockfile_path.display()
+        ));
     }
 
     let pack_lock = pack_gemfile::PackLock::read(&lockfile_path)
@@ -1326,11 +1439,14 @@ fn run_lockfile(path: Option<&str>) -> anyhow::Result<()> {
 fn run_run(task: &str) -> anyhow::Result<()> {
     let packfile = pack_gemfile::Packfile::find()
         .map_err(|e| anyhow::anyhow!("failed to find Packfile: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("no Packfile found in current directory. Create a Packfile to define tasks."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "no Packfile found in current directory. Create a Packfile to define tasks."
+            )
+        })?;
 
     info!("Running task: {}", task);
-    packfile.run(task)
-        .map_err(|e| anyhow::anyhow!("{}", e))?;
+    packfile.run(task).map_err(|e| anyhow::anyhow!("{}", e))?;
 
     Ok(())
 }
@@ -1338,7 +1454,11 @@ fn run_run(task: &str) -> anyhow::Result<()> {
 fn run_tasks(verbose: bool) -> anyhow::Result<()> {
     let packfile = pack_gemfile::Packfile::find()
         .map_err(|e| anyhow::anyhow!("failed to find Packfile: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("no Packfile found in current directory. Create a Packfile to define tasks."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "no Packfile found in current directory. Create a Packfile to define tasks."
+            )
+        })?;
 
     let tasks: Vec<_> = packfile.task_names().into_iter().collect();
 
@@ -1372,7 +1492,9 @@ fn run_tasks(verbose: bool) -> anyhow::Result<()> {
 fn run_server(port: Option<u16>, detached: bool) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.server(port, detached)
 }
@@ -1380,7 +1502,9 @@ fn run_server(port: Option<u16>, detached: bool) -> anyhow::Result<()> {
 fn run_console() -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.console()
 }
@@ -1388,7 +1512,9 @@ fn run_console() -> anyhow::Result<()> {
 fn run_test(args: &[String]) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.test(args)
 }
@@ -1396,7 +1522,9 @@ fn run_test(args: &[String]) -> anyhow::Result<()> {
 fn run_rspec(args: &[String]) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.rspec(args)
 }
@@ -1404,7 +1532,9 @@ fn run_rspec(args: &[String]) -> anyhow::Result<()> {
 fn run_db(operation: &str) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.db(operation)
 }
@@ -1412,7 +1542,9 @@ fn run_db(operation: &str) -> anyhow::Result<()> {
 fn run_assets(operation: &str) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.assets(operation)
 }
@@ -1420,7 +1552,9 @@ fn run_assets(operation: &str) -> anyhow::Result<()> {
 fn run_cache(operation: &str) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.cache(operation)
 }
@@ -1428,13 +1562,22 @@ fn run_cache(operation: &str) -> anyhow::Result<()> {
 fn run_docker(_dockerfile_only: bool) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.generate_docker()?;
     Ok(())
 }
 
-fn run_new(name: &str, skip_bundle: bool, skip_lock: bool, docker: bool, database: Option<&str>, assets: Option<&str>) -> anyhow::Result<()> {
+fn run_new(
+    name: &str,
+    skip_bundle: bool,
+    skip_lock: bool,
+    docker: bool,
+    database: Option<&str>,
+    assets: Option<&str>,
+) -> anyhow::Result<()> {
     println!();
     println!("========================================");
     println!("     Creating new Rails project: {}", name);
@@ -1517,7 +1660,8 @@ fn run_new(name: &str, skip_bundle: bool, skip_lock: bool, docker: bool, databas
         println!("Generating pack.lock...");
         let pack_lock = pack_gemfile::PackLock::new();
         let lock_path = PathBuf::from("pack.lock");
-        pack_lock.write_binary(&lock_path)
+        pack_lock
+            .write_binary(&lock_path)
             .context("failed to write pack.lock")?;
     }
 
@@ -1555,7 +1699,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Pack
-RUN curl -fsSL https://pack.dev/install.sh | bash
+RUN curl -fsSL https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.sh | bash
 ENV PATH="/usr/local/bin:$PATH"
 
 WORKDIR /app
@@ -1563,7 +1707,7 @@ WORKDIR /app
 # Copy Gemfiles
 COPY Gemfile Gemfile.lock* ./
 
-# Install gems with pack (faster than bundle install)
+# Install gems through RubyGems/Bundler-compatible workflow
 RUN bundle install
 
 # Copy application code
@@ -1629,7 +1773,9 @@ fn run_init(skip_packignore: bool, skip_docker: bool) -> anyhow::Result<()> {
     // Check if this is a Rails project
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     println!();
     println!("Initializing pack for Rails project...");
@@ -1639,7 +1785,8 @@ fn run_init(skip_packignore: bool, skip_docker: bool) -> anyhow::Result<()> {
     println!("Generating pack.lock...");
     let pack_lock = pack_gemfile::PackLock::new();
     let lock_path = app.path().join("pack.lock");
-    pack_lock.write_binary(&lock_path)
+    pack_lock
+        .write_binary(&lock_path)
         .context("failed to write pack.lock")?;
 
     // Generate .packignore
@@ -1683,7 +1830,9 @@ node_modules/
 fn run_rails(args: &[String]) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     let rails_args: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
     app.run_rails_cmd(&rails_args)
@@ -1692,7 +1841,9 @@ fn run_rails(args: &[String]) -> anyhow::Result<()> {
 fn run_rake(task: &str) -> anyhow::Result<()> {
     let app = rails::RailsApp::discover()
         .map_err(|e| anyhow::anyhow!("not a Rails app: {}", e))?
-        .ok_or_else(|| anyhow::anyhow!("not a Rails app. Run from your Rails project directory."))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("not a Rails app. Run from your Rails project directory.")
+        })?;
 
     app.run_rake(task)
 }
@@ -1725,21 +1876,28 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
                         enabled: bool,
                         path: String,
                     }
-                    let json_plugins: Vec<PluginJson> = plugins.iter().map(|p| PluginJson {
-                        name: &p.name,
-                        version: &p.version,
-                        description: &p.description,
-                        commands: &p.commands,
-                        enabled: p.enabled,
-                        path: p.path.display().to_string(),
-                    }).collect();
+                    let json_plugins: Vec<PluginJson> = plugins
+                        .iter()
+                        .map(|p| PluginJson {
+                            name: &p.name,
+                            version: &p.version,
+                            description: &p.description,
+                            commands: &p.commands,
+                            enabled: p.enabled,
+                            path: p.path.display().to_string(),
+                        })
+                        .collect();
                     println!("{}", serde_json::to_string_pretty(&json_plugins).unwrap());
                 }
                 OutputFormat::Table => {
                     println!("Installed Plugins");
                     println!("------------------");
                     for plugin in plugins {
-                        let status = if plugin.enabled { "enabled" } else { "disabled" };
+                        let status = if plugin.enabled {
+                            "enabled"
+                        } else {
+                            "disabled"
+                        };
                         println!("{} ({})", plugin.name, status);
                         println!("  Version: {}", plugin.version);
                         println!("  Description: {}", plugin.description);
@@ -1774,13 +1932,19 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
             if !dir.exists() {
                 println!("Plugin directory does not exist: {}", dir.display());
                 println!("Creating directory...");
-                std::fs::create_dir_all(&dir).map_err(|e| anyhow::anyhow!("failed to create directory: {}", e))?;
+                std::fs::create_dir_all(&dir)
+                    .map_err(|e| anyhow::anyhow!("failed to create directory: {}", e))?;
             }
 
             let loaded = manager.load_from_dir(&dir)?;
             println!("Loaded {} plugin(s)", loaded.len());
             for plugin in &loaded {
-                println!("  - {} v{} ({})", plugin.name, plugin.version, plugin.path.display());
+                println!(
+                    "  - {} v{} ({})",
+                    plugin.name,
+                    plugin.version,
+                    plugin.path.display()
+                );
             }
         }
         pack_exec::PluginAction::Reload { verbose } => {
@@ -1809,11 +1973,17 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
             let results = manager.search(pattern.as_deref());
 
             if results.is_empty() {
-                println!("No plugins found matching '{}'", pattern.as_deref().unwrap_or("*"));
+                println!(
+                    "No plugins found matching '{}'",
+                    pattern.as_deref().unwrap_or("*")
+                );
             } else {
                 println!("Found {} plugin(s):", results.len());
                 for plugin in results {
-                    println!("  {} v{} - {}", plugin.name, plugin.version, plugin.description);
+                    println!(
+                        "  {} v{} - {}",
+                        plugin.name, plugin.version, plugin.description
+                    );
                 }
             }
         }
@@ -1840,9 +2010,16 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
                 }
             }
 
-            println!("\nSummary: {} valid, {} invalid", valid_count, invalid_count);
+            println!(
+                "\nSummary: {} valid, {} invalid",
+                valid_count, invalid_count
+            );
         }
-        pack_exec::PluginAction::Init { name, path, template } => {
+        pack_exec::PluginAction::Init {
+            name,
+            path,
+            template,
+        } => {
             let target_path = if let Some(p) = path {
                 std::path::PathBuf::from(p)
             } else {
@@ -1854,7 +2031,8 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
 
             println!("Creating plugin '{}' at {}", name, target_path.display());
 
-            let plugin = manager.init_plugin(&name, &target_path, template)
+            let plugin = manager
+                .init_plugin(&name, &target_path, template)
                 .map_err(|e| anyhow::anyhow!("failed to init plugin: {}", e))?;
 
             println!("✓ Plugin created successfully");
@@ -1863,7 +2041,8 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
             println!("\nTo enable, run: pack plugins load");
         }
         pack_exec::PluginAction::Uninstall { name, purge } => {
-            let removed = manager.uninstall_plugin(&name, purge)
+            let removed = manager
+                .uninstall_plugin(&name, purge)
                 .map_err(|e| anyhow::anyhow!("failed to uninstall plugin: {}", e))?;
 
             if removed {
@@ -1876,7 +2055,8 @@ fn run_plugins(action: pack_exec::PluginAction) -> anyhow::Result<()> {
             }
         }
         pack_exec::PluginAction::Info { name } => {
-            let plugin = manager.get(&name)
+            let plugin = manager
+                .get(&name)
                 .ok_or_else(|| anyhow::anyhow!("plugin '{}' not found", name))?;
 
             println!("Plugin: {}", plugin.name);

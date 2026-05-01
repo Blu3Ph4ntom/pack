@@ -53,7 +53,9 @@ pack --help</code></pre>
         <article class="install-card">
           <p class="install-kicker">Windows PowerShell</p>
           <p class="install-title">Direct binary installer</p>
-          <pre class="doc-pre"><code>powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex"</code></pre>
+          <pre class="doc-pre"><code>powershell -ExecutionPolicy Bypass -Command "
+iwr https://raw.githubusercontent.com/Blu3Ph4ntom/pack/main/scripts/install.ps1 -UseBasicParsing | iex
+"</code></pre>
         </article>
 
         <article class="install-card">
@@ -101,7 +103,7 @@ pack server</code></pre>
         <li><code>pack list</code>, <code>pack search</code>, and <code>pack info</code> let you validate the gem-facing path immediately.</li>
         <li><code>pack run</code> and <code>pack tasks</code> expose Packfile-managed project commands.</li>
         <li><code>pack console</code>, <code>pack test</code>, and <code>pack db migrate</code> prove the Rails-facing workflow story.</li>
-        <li><code>pack update --global</code> updates globally installed gems through RubyGems, and <code>pack upgrade</code> refreshes the Pack wrapper install itself (Ruby/Gem required for these two paths).</li>
+        <li><code>pack update --global</code> updates globally installed gems through RubyGems, and <code>pack upgrade</code> refreshes Pack through RubyGems or the direct binary installer.</li>
       </ul>
     </section>
 
